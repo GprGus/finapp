@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Sheet, SheetTitle, Field, inputClass } from './Sheet';
 import { useFinance } from '../state/store';
 import { todayISO } from '../lib/format';
+import { ApiError } from '../lib/api';
 
 const HUES = [40, 140, 250, 300, 20, 10, 220, 90, 152, 60];
 
@@ -10,17 +11,27 @@ export function AddSubscriptionSheet({ open, onClose }: { open: boolean; onClose
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [renewDate, setRenewDate] = useState(todayISO());
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const canSubmit = !!name.trim() && parseFloat(price) > 0 && !!renewDate;
+  const canSubmit = !!name.trim() && parseFloat(price) > 0 && !!renewDate && !isSubmitting;
 
-  const submit = () => {
+  const submit = async () => {
     if (!canSubmit) return;
-    const hue = HUES[Math.floor(Math.random() * HUES.length)];
-    addSubscription({ name: name.trim(), price: parseFloat(price), renewDate, hue });
-    setName('');
-    setPrice('');
-    setRenewDate(todayISO());
-    onClose();
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      const hue = HUES[Math.floor(Math.random() * HUES.length)];
+      await addSubscription({ name: name.trim(), price: parseFloat(price), renewDate, hue });
+      setName('');
+      setPrice('');
+      setRenewDate(todayISO());
+      onClose();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Erro ao adicionar assinatura');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -55,6 +66,12 @@ export function AddSubscriptionSheet({ open, onClose }: { open: boolean; onClose
         />
       </Field>
 
+      {error && (
+        <div className="text-[13px] mb-3.5" style={{ color: 'oklch(0.5 0.15 35)' }}>
+          {error}
+        </div>
+      )}
+
       <button
         disabled={!canSubmit}
         onClick={submit}
@@ -64,7 +81,7 @@ export function AddSubscriptionSheet({ open, onClose }: { open: boolean; onClose
           color: canSubmit ? '#fff' : 'rgba(20,20,15,0.4)',
         }}
       >
-        Adicionar assinatura
+        {isSubmitting ? 'Adicionando…' : 'Adicionar assinatura'}
       </button>
     </Sheet>
   );

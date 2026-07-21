@@ -95,7 +95,9 @@ export function Lancamentos() {
       <ConfirmDeleteSheet
         open={!!target}
         title={`Excluir "${target?.desc}"?`}
-        onConfirm={() => target && deleteEntry(target.id)}
+        onConfirm={async () => {
+          if (target) await deleteEntry(target.id);
+        }}
         onClose={() => setTarget(null)}
       />
     </div>

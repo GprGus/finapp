@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: finapp
+      POSTGRES_PASSWORD: finapp
+      POSTGRES_DB: finapp
+    ports:
+      - '5432:5432'
+    volumes:
+      - finapp-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U finapp -d finapp']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  finapp-postgres-data:

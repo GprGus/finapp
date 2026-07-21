@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { FinanceProvider } from './state/store';
-import { useLocalStorage } from './lib/useLocalStorage';
+import { FinanceProvider, useFinance } from './state/store';
+import { AuthProvider, useAuth } from './state/auth';
 import { BottomNav } from './components/BottomNav';
 import { AddEntrySheet } from './components/AddEntrySheet';
 import { ProfileSheet } from './components/ProfileSheet';
@@ -8,13 +8,35 @@ import { Dashboard } from './pages/Dashboard';
 import { Lancamentos } from './pages/Lancamentos';
 import { Assinaturas } from './pages/Assinaturas';
 import { Relatorios } from './pages/Relatorios';
+import { Login } from './pages/Login';
+import { Register } from './pages/Register';
 import type { Tab } from './types';
 
 function AppShell() {
   const [tab, setTab] = useState<Tab>('dashboard');
   const [showAdd, setShowAdd] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const [name, setName] = useLocalStorage('app-financeiro:name', '');
+  const { user, updateProfile } = useAuth();
+  const { isLoading, error } = useFinance();
+  const name = user?.name ?? '';
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-surface max-w-[560px] mx-auto flex items-center justify-center font-sans box-border">
+        <div className="text-ink/40 text-sm">Carregando…</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-surface max-w-[560px] mx-auto flex items-center justify-center font-sans box-border px-6 text-center">
+        <div className="text-[13.5px]" style={{ color: 'oklch(0.5 0.15 35)' }}>
+          {error}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-surface max-w-[560px] mx-auto relative font-sans box-border shadow-[0_0_60px_rgba(20,20,15,0.06)]">
@@ -43,17 +65,44 @@ function AppShell() {
       <ProfileSheet
         open={showProfile}
         name={name}
-        onSave={setName}
+        onSave={updateProfile}
         onClose={() => setShowProfile(false)}
       />
     </div>
   );
 }
 
-export default function App() {
+function AuthGate() {
+  const { user, isLoading } = useAuth();
+  const [authView, setAuthView] = useState<'login' | 'register'>('login');
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-surface max-w-[560px] mx-auto flex items-center justify-center font-sans box-border">
+        <div className="text-ink/40 text-sm">Carregando…</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return authView === 'login' ? (
+      <Login onSwitchToRegister={() => setAuthView('register')} />
+    ) : (
+      <Register onSwitchToLogin={() => setAuthView('login')} />
+    );
+  }
+
   return (
     <FinanceProvider>
       <AppShell />
     </FinanceProvider>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AuthGate />
+    </AuthProvider>
   );
 }

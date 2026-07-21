@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Sheet, SheetTitle, Field, inputClass } from './Sheet';
 import { useFinance } from '../state/store';
+import { ApiError } from '../lib/api';
 import type { AccountType } from '../types';
 
 const TYPES: AccountType[] = ['Corrente', 'Poupança', 'Cartão', 'Investimento', 'Dinheiro'];
@@ -10,16 +11,26 @@ export function AddAccountSheet({ open, onClose }: { open: boolean; onClose: () 
   const [name, setName] = useState('');
   const [type, setType] = useState<AccountType>('Corrente');
   const [balance, setBalance] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const canSubmit = !!name.trim();
+  const canSubmit = !!name.trim() && !isSubmitting;
 
-  const submit = () => {
+  const submit = async () => {
     if (!canSubmit) return;
-    addAccount({ name: name.trim(), type, openingBalance: parseFloat(balance) || 0 });
-    setName('');
-    setType('Corrente');
-    setBalance('');
-    onClose();
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      await addAccount({ name: name.trim(), type, openingBalance: parseFloat(balance) || 0 });
+      setName('');
+      setType('Corrente');
+      setBalance('');
+      onClose();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Erro ao adicionar conta');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -67,6 +78,12 @@ export function AddAccountSheet({ open, onClose }: { open: boolean; onClose: () 
         />
       </Field>
 
+      {error && (
+        <div className="text-[13px] mb-3.5" style={{ color: 'oklch(0.5 0.15 35)' }}>
+          {error}
+        </div>
+      )}
+
       <button
         disabled={!canSubmit}
         onClick={submit}
@@ -76,7 +93,7 @@ export function AddAccountSheet({ open, onClose }: { open: boolean; onClose: () 
           color: canSubmit ? '#fff' : 'rgba(20,20,15,0.4)',
         }}
       >
-        Adicionar conta
+        {isSubmitting ? 'Adicionando…' : 'Adicionar conta'}
       </button>
     </Sheet>
   );

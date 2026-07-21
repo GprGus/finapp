@@ -178,7 +178,9 @@ export function Dashboard({
         open={!!deleteAccountTarget}
         title={`Excluir "${deleteAccountTarget?.name}"?`}
         detail="Todos os lançamentos associados a esta conta também serão excluídos."
-        onConfirm={() => deleteAccountTarget && deleteAccount(deleteAccountTarget.id)}
+        onConfirm={async () => {
+          if (deleteAccountTarget) await deleteAccount(deleteAccountTarget.id);
+        }}
         onClose={() => setDeleteAccountTarget(null)}
       />
     </div>

@@ -3,6 +3,7 @@ import { Sheet, SheetTitle, Field, inputClass } from './Sheet';
 import { useFinance } from '../state/store';
 import type { Goal } from '../types';
 import { fmtBRL } from '../lib/format';
+import { ApiError } from '../lib/api';
 
 export function GoalActionSheet({
   goal,
@@ -13,20 +14,39 @@ export function GoalActionSheet({
 }) {
   const { contributeToGoal, deleteGoal } = useFinance();
   const [amount, setAmount] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!goal) return null;
 
-  const add = () => {
+  const add = async () => {
     const val = parseFloat(amount);
-    if (!val) return;
-    contributeToGoal(goal.id, val);
-    setAmount('');
-    onClose();
+    if (!val || isSubmitting) return;
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      await contributeToGoal(goal.id, val);
+      setAmount('');
+      onClose();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Erro ao contribuir');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const remove = () => {
-    deleteGoal(goal.id);
-    onClose();
+  const remove = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      await deleteGoal(goal.id);
+      onClose();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Erro ao excluir meta');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -46,8 +66,14 @@ export function GoalActionSheet({
         />
       </Field>
 
+      {error && (
+        <div className="text-[13px] mb-3.5" style={{ color: 'oklch(0.5 0.15 35)' }}>
+          {error}
+        </div>
+      )}
+
       <button
-        disabled={!parseFloat(amount)}
+        disabled={!parseFloat(amount) || isSubmitting}
         onClick={add}
         className="w-full py-[15px] rounded-2xl border-none text-[15.5px] font-bold cursor-pointer mb-2.5 disabled:cursor-not-allowed"
         style={{
@@ -60,7 +86,8 @@ export function GoalActionSheet({
 
       <button
         onClick={remove}
-        className="w-full py-[13px] rounded-2xl border-none text-[14px] font-bold cursor-pointer bg-transparent"
+        disabled={isSubmitting}
+        className="w-full py-[13px] rounded-2xl border-none text-[14px] font-bold cursor-pointer bg-transparent disabled:cursor-not-allowed"
         style={{ color: 'oklch(0.5 0.15 35)' }}
       >
         Excluir meta

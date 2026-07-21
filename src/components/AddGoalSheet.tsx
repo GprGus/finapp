@@ -1,22 +1,33 @@
 import { useState } from 'react';
 import { Sheet, SheetTitle, Field, inputClass } from './Sheet';
 import { useFinance } from '../state/store';
+import { ApiError } from '../lib/api';
 
 export function AddGoalSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { addGoal } = useFinance();
   const [name, setName] = useState('');
   const [target, setTarget] = useState('');
   const [current, setCurrent] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const canSubmit = !!name.trim() && parseFloat(target) > 0;
+  const canSubmit = !!name.trim() && parseFloat(target) > 0 && !isSubmitting;
 
-  const submit = () => {
+  const submit = async () => {
     if (!canSubmit) return;
-    addGoal({ name: name.trim(), target: parseFloat(target), current: parseFloat(current) || 0 });
-    setName('');
-    setTarget('');
-    setCurrent('');
-    onClose();
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      await addGoal({ name: name.trim(), target: parseFloat(target), current: parseFloat(current) || 0 });
+      setName('');
+      setTarget('');
+      setCurrent('');
+      onClose();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Erro ao adicionar meta');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -52,6 +63,12 @@ export function AddGoalSheet({ open, onClose }: { open: boolean; onClose: () => 
         />
       </Field>
 
+      {error && (
+        <div className="text-[13px] mb-3.5" style={{ color: 'oklch(0.5 0.15 35)' }}>
+          {error}
+        </div>
+      )}
+
       <button
         disabled={!canSubmit}
         onClick={submit}
@@ -61,7 +78,7 @@ export function AddGoalSheet({ open, onClose }: { open: boolean; onClose: () => 
           color: canSubmit ? '#fff' : 'rgba(20,20,15,0.4)',
         }}
       >
-        Adicionar meta
+        {isSubmitting ? 'Adicionando…' : 'Adicionar meta'}
       </button>
     </Sheet>
   );

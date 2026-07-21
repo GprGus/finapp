@@ -3,6 +3,7 @@ import { Sheet, SheetTitle, Field, inputClass } from './Sheet';
 import { useFinance } from '../state/store';
 import { EXPENSE_CATEGORIES, categoryBarColor } from '../lib/categories';
 import { todayISO } from '../lib/format';
+import { ApiError } from '../lib/api';
 import type { CategoryId } from '../types';
 
 export function AddEntrySheet({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -13,26 +14,36 @@ export function AddEntrySheet({ open, onClose }: { open: boolean; onClose: () =>
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState<CategoryId>('moradia');
   const [accountId, setAccountId] = useState(state.accounts[0]?.id ?? '');
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isDespesa = type === 'despesa';
   const isRetro = date < todayISO();
-  const canSubmit = !!desc.trim() && !!date && !!parseFloat(amount) && !!accountId;
+  const canSubmit = !!desc.trim() && !!date && !!parseFloat(amount) && !!accountId && !isSubmitting;
 
-  const submit = () => {
+  const submit = async () => {
     if (!canSubmit) return;
-    const amt = parseFloat(amount);
-    addEntry({
-      date,
-      desc: desc.trim(),
-      amount: isDespesa ? -Math.abs(amt) : Math.abs(amt),
-      categoryId: isDespesa ? category : 'renda',
-      accountId,
-    });
-    setDesc('');
-    setAmount('');
-    setDate(todayISO());
-    setType('despesa');
-    onClose();
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      const amt = parseFloat(amount);
+      await addEntry({
+        date,
+        desc: desc.trim(),
+        amount: isDespesa ? -Math.abs(amt) : Math.abs(amt),
+        categoryId: isDespesa ? category : 'renda',
+        accountId,
+      });
+      setDesc('');
+      setAmount('');
+      setDate(todayISO());
+      setType('despesa');
+      onClose();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Erro ao adicionar lançamento');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (state.accounts.length === 0) {
@@ -164,6 +175,12 @@ export function AddEntrySheet({ open, onClose }: { open: boolean; onClose: () =>
         </div>
       </div>
 
+      {error && (
+        <div className="text-[13px] mb-3.5" style={{ color: 'oklch(0.5 0.15 35)' }}>
+          {error}
+        </div>
+      )}
+
       <button
         disabled={!canSubmit}
         onClick={submit}
@@ -173,7 +190,7 @@ export function AddEntrySheet({ open, onClose }: { open: boolean; onClose: () =>
           color: canSubmit ? '#fff' : 'rgba(20,20,15,0.4)',
         }}
       >
-        Adicionar lançamento
+        {isSubmitting ? 'Adicionando…' : 'Adicionar lançamento'}
       </button>
     </Sheet>
   );

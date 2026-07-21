@@ -1,5 +1,11 @@
 export type Tab = 'dashboard' | 'lancamentos' | 'assinaturas' | 'relatorios';
 
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+}
+
 export type AccountType = 'Corrente' | 'Poupança' | 'Cartão' | 'Investimento' | 'Dinheiro';
 
 export interface Account {

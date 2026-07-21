@@ -25,10 +25,6 @@ export function monthLabel(date = new Date()): string {
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
-export function uid(): string {
-  return (crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`);
-}
-
 export function daysUntil(iso: string): number {
   const today = new Date(todayISO() + 'T00:00:00');
   const target = new Date(iso + 'T00:00:00');

@@ -77,7 +77,9 @@ export function Assinaturas() {
       <ConfirmDeleteSheet
         open={!!target}
         title={`Excluir "${target?.name}"?`}
-        onConfirm={() => target && deleteSubscription(target.id)}
+        onConfirm={async () => {
+          if (target) await deleteSubscription(target.id);
+        }}
         onClose={() => setTarget(null)}
       />
     </div>

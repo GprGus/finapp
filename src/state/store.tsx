@@ -1,8 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Account, AccountType, Entry, FinanceState, Goal, Subscription, CategoryId } from '../types';
-import { uid, todayISO } from '../lib/format';
-
-const STORAGE_KEY = 'app-financeiro:v1';
+import { apiFetch } from '../lib/api';
 
 const EMPTY_STATE: FinanceState = {
   accounts: [],
@@ -11,44 +9,35 @@ const EMPTY_STATE: FinanceState = {
   entries: [],
 };
 
-function loadState(): FinanceState {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return EMPTY_STATE;
-    const parsed = JSON.parse(raw);
-    return {
-      accounts: parsed.accounts ?? [],
-      goals: parsed.goals ?? [],
-      subscriptions: parsed.subscriptions ?? [],
-      entries: parsed.entries ?? [],
-    };
-  } catch {
-    return EMPTY_STATE;
-  }
-}
-
 interface FinanceContextValue {
   state: FinanceState;
-  addAccount: (input: { name: string; type: AccountType; openingBalance: number }) => void;
-  deleteAccount: (id: string) => void;
-  addGoal: (input: { name: string; target: number; current: number }) => void;
-  contributeToGoal: (id: string, amount: number) => void;
-  deleteGoal: (id: string) => void;
-  addSubscription: (input: { name: string; price: number; renewDate: string; hue: number }) => void;
-  deleteSubscription: (id: string) => void;
-  addEntry: (input: { date: string; desc: string; amount: number; categoryId: CategoryId; accountId: string }) => void;
-  deleteEntry: (id: string) => void;
+  isLoading: boolean;
+  error: string | null;
+  addAccount: (input: { name: string; type: AccountType; openingBalance: number }) => Promise<void>;
+  deleteAccount: (id: string) => Promise<void>;
+  addGoal: (input: { name: string; target: number; current: number }) => Promise<void>;
+  contributeToGoal: (id: string, amount: number) => Promise<void>;
+  deleteGoal: (id: string) => Promise<void>;
+  addSubscription: (input: { name: string; price: number; renewDate: string; hue: number }) => Promise<void>;
+  deleteSubscription: (id: string) => Promise<void>;
+  addEntry: (input: { date: string; desc: string; amount: number; categoryId: CategoryId; accountId: string }) => Promise<void>;
+  deleteEntry: (id: string) => Promise<void>;
   accountBalance: (accountId: string) => number;
 }
 
 const FinanceContext = createContext<FinanceContextValue | null>(null);
 
 export function FinanceProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<FinanceState>(loadState);
+  const [state, setState] = useState<FinanceState>(EMPTY_STATE);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, [state]);
+    apiFetch<FinanceState>('/state')
+      .then(setState)
+      .catch((err) => setError(err instanceof Error ? err.message : 'Erro ao carregar dados'))
+      .finally(() => setIsLoading(false));
+  }, []);
 
   const value = useMemo<FinanceContextValue>(() => {
     const accountBalance = (accountId: string) => {
@@ -62,13 +51,16 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
 
     return {
       state,
+      isLoading,
+      error,
       accountBalance,
 
-      addAccount: ({ name, type, openingBalance }) => {
-        const acc: Account = { id: uid(), name, type, openingBalance, createdAt: todayISO() };
+      addAccount: async (input) => {
+        const acc = await apiFetch<Account>('/accounts', { method: 'POST', body: input });
         setState((s) => ({ ...s, accounts: [...s.accounts, acc] }));
       },
-      deleteAccount: (id) => {
+      deleteAccount: async (id) => {
+        await apiFetch(`/accounts/${id}`, { method: 'DELETE' });
         setState((s) => ({
           ...s,
           accounts: s.accounts.filter((a) => a.id !== id),
@@ -76,46 +68,38 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
         }));
       },
 
-      addGoal: ({ name, target, current }) => {
-        const goal: Goal = { id: uid(), name, target, current, createdAt: todayISO() };
+      addGoal: async (input) => {
+        const goal = await apiFetch<Goal>('/goals', { method: 'POST', body: input });
         setState((s) => ({ ...s, goals: [...s.goals, goal] }));
       },
-      contributeToGoal: (id, amount) => {
-        setState((s) => ({
-          ...s,
-          goals: s.goals.map((g) => (g.id === id ? { ...g, current: g.current + amount } : g)),
-        }));
+      contributeToGoal: async (id, amount) => {
+        const goal = await apiFetch<Goal>(`/goals/${id}/contribute`, { method: 'POST', body: { amount } });
+        setState((s) => ({ ...s, goals: s.goals.map((g) => (g.id === id ? goal : g)) }));
       },
-      deleteGoal: (id) => {
+      deleteGoal: async (id) => {
+        await apiFetch(`/goals/${id}`, { method: 'DELETE' });
         setState((s) => ({ ...s, goals: s.goals.filter((g) => g.id !== id) }));
       },
 
-      addSubscription: ({ name, price, renewDate, hue }) => {
-        const sub: Subscription = { id: uid(), name, price, renewDate, hue, createdAt: todayISO() };
+      addSubscription: async (input) => {
+        const sub = await apiFetch<Subscription>('/subscriptions', { method: 'POST', body: input });
         setState((s) => ({ ...s, subscriptions: [...s.subscriptions, sub] }));
       },
-      deleteSubscription: (id) => {
+      deleteSubscription: async (id) => {
+        await apiFetch(`/subscriptions/${id}`, { method: 'DELETE' });
         setState((s) => ({ ...s, subscriptions: s.subscriptions.filter((sub) => sub.id !== id) }));
       },
 
-      addEntry: ({ date, desc, amount, categoryId, accountId }) => {
-        const entry: Entry = {
-          id: uid(),
-          date,
-          desc,
-          amount,
-          categoryId,
-          accountId,
-          retro: date < todayISO(),
-          createdAt: todayISO(),
-        };
+      addEntry: async (input) => {
+        const entry = await apiFetch<Entry>('/entries', { method: 'POST', body: input });
         setState((s) => ({ ...s, entries: [entry, ...s.entries] }));
       },
-      deleteEntry: (id) => {
+      deleteEntry: async (id) => {
+        await apiFetch(`/entries/${id}`, { method: 'DELETE' });
         setState((s) => ({ ...s, entries: s.entries.filter((e) => e.id !== id) }));
       },
     };
-  }, [state]);
+  }, [state, isLoading, error]);
 
   return <FinanceContext.Provider value={value}>{children}</FinanceContext.Provider>;
 }

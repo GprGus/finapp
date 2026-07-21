@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Sheet, SheetTitle } from './Sheet';
+import { ApiError } from '../lib/api';
 
 export function ConfirmDeleteSheet({
   open,
@@ -13,22 +14,45 @@ export function ConfirmDeleteSheet({
   title: string;
   detail?: ReactNode;
   confirmLabel?: string;
-  onConfirm: () => void;
+  onConfirm: () => Promise<void>;
   onClose: () => void;
 }) {
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (open) setError(null);
+  }, [open]);
+
+  const confirm = async () => {
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      await onConfirm();
+      onClose();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Erro ao excluir');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <Sheet open={open} onClose={onClose}>
       <SheetTitle>{title}</SheetTitle>
       {detail && <div className="text-[13.5px] text-ink/50 mb-5">{detail}</div>}
+      {error && (
+        <div className="text-[13px] mb-3.5" style={{ color: 'oklch(0.5 0.15 35)' }}>
+          {error}
+        </div>
+      )}
       <button
-        onClick={() => {
-          onConfirm();
-          onClose();
-        }}
-        className="w-full py-[15px] rounded-2xl border-none text-[15.5px] font-bold cursor-pointer mb-2.5"
+        onClick={confirm}
+        disabled={isSubmitting}
+        className="w-full py-[15px] rounded-2xl border-none text-[15.5px] font-bold cursor-pointer mb-2.5 disabled:cursor-not-allowed"
         style={{ background: 'oklch(0.5 0.15 35 / 0.12)', color: 'oklch(0.5 0.15 35)' }}
       >
-        {confirmLabel}
+        {isSubmitting ? 'Excluindo…' : confirmLabel}
       </button>
       <button
         onClick={onClose}
