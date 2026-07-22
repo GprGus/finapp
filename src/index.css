@@ -60,3 +60,11 @@ input, select {
 .animate-fade-in {
   animation: fade-in 0.2s ease-out;
 }
+
+@keyframes slide-in-left {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+.animate-slide-in-left {
+  animation: slide-in-left 0.22s ease-out;
+}

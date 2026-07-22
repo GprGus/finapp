@@ -9,17 +9,24 @@ import { stateRouter } from './routes/state.js';
 import { accountsRouter } from './routes/accounts.js';
 import { goalsRouter } from './routes/goals.js';
 import { subscriptionsRouter } from './routes/subscriptions.js';
+import { debtsRouter } from './routes/debts.js';
 import { entriesRouter } from './routes/entries.js';
 import { billDueSubscriptions } from './jobs/billSubscriptions.js';
+import { billDueDebts } from './jobs/billDebts.js';
 
 const distDir = path.resolve(process.cwd(), 'dist');
 const BILLING_CHECK_INTERVAL_MS = 60 * 60 * 1000;
 
-function startSubscriptionBillingLoop() {
-  billDueSubscriptions().catch((err) => console.error('Falha ao cobrar assinaturas', err));
-  setInterval(() => {
-    billDueSubscriptions().catch((err) => console.error('Falha ao cobrar assinaturas', err));
-  }, BILLING_CHECK_INTERVAL_MS);
+async function runBillingPass() {
+  await Promise.all([
+    billDueSubscriptions().catch((err) => console.error('Falha ao cobrar assinaturas', err)),
+    billDueDebts().catch((err) => console.error('Falha ao cobrar dívidas', err)),
+  ]);
+}
+
+function startBillingLoop() {
+  runBillingPass();
+  setInterval(runBillingPass, BILLING_CHECK_INTERVAL_MS);
 }
 
 async function main() {
@@ -35,6 +42,7 @@ async function main() {
   app.use('/api/accounts', accountsRouter);
   app.use('/api/goals', goalsRouter);
   app.use('/api/subscriptions', subscriptionsRouter);
+  app.use('/api/debts', debtsRouter);
   app.use('/api/entries', entriesRouter);
 
   app.use(express.static(distDir));
@@ -52,7 +60,7 @@ async function main() {
   };
   app.use(errorHandler);
 
-  startSubscriptionBillingLoop();
+  startBillingLoop();
 
   const port = Number(process.env.PORT) || 3000;
   app.listen(port, () => {

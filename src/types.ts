@@ -1,4 +1,4 @@
-export type Tab = 'dashboard' | 'lancamentos' | 'assinaturas' | 'relatorios' | 'previstos';
+export type Tab = 'dashboard' | 'lancamentos' | 'assinaturas' | 'dividas' | 'relatorios' | 'previstos';
 
 export interface User {
   id: string;
@@ -38,6 +38,20 @@ export interface Subscription {
   createdAt: string;
 }
 
+export interface Debt {
+  id: string;
+  accountId: string;
+  name: string;
+  installmentAmount: number;
+  totalInstallments: number;
+  paidInstallments: number;
+  intervalDays: number;
+  nextChargeDate: string;
+  lastChargeDate: string | null;
+  hue: number;
+  createdAt: string;
+}
+
 export type CategoryId =
   | 'moradia'
   | 'alimentacao'
@@ -46,6 +60,7 @@ export type CategoryId =
   | 'lazer'
   | 'saude'
   | 'educacao'
+  | 'dividas'
   | 'outros'
   | 'renda';
 
@@ -63,6 +78,7 @@ export interface Entry {
   categoryId: CategoryId;
   accountId: string;
   subscriptionId: string | null;
+  debtId: string | null;
   retro: boolean;
   createdAt: string;
 }
@@ -71,5 +87,6 @@ export interface FinanceState {
   accounts: Account[];
   goals: Goal[];
   subscriptions: Subscription[];
+  debts: Debt[];
   entries: Entry[];
 }

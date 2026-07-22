@@ -44,7 +44,7 @@ export function Dashboard({
   const initial = name.trim() ? name.trim().charAt(0).toUpperCase() : '?';
 
   return (
-    <div className="px-5 pt-[calc(env(safe-area-inset-top,0px)+20px)] pb-[110px]">
+    <div className="px-5 pt-5 pb-10">
       <div className="flex items-center justify-between mb-[22px]">
         <div>
           <div className="text-[13px] text-ink/50 tracking-tight">{greeting()}</div>

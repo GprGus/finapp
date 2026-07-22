@@ -58,7 +58,7 @@ export function Relatorios() {
   }, [monthEntries]);
 
   return (
-    <div className="px-5 pt-[calc(env(safe-area-inset-top,0px)+20px)] pb-[130px]">
+    <div className="px-5 pt-5 pb-10">
       <div className="text-[26px] font-bold text-ink tracking-tight mb-1">Relatórios</div>
       <div className="text-[13.5px] text-ink/50 mb-[22px]">{monthLabel()}</div>
 

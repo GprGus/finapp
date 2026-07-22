@@ -8,6 +8,7 @@ export const CATEGORIES: Category[] = [
   { id: 'lazer', name: 'Lazer', hue: 20 },
   { id: 'saude', name: 'Saúde', hue: 10 },
   { id: 'educacao', name: 'Educação', hue: 220 },
+  { id: 'dividas', name: 'Dívidas', hue: 0 },
   { id: 'outros', name: 'Outros', hue: 90 },
   { id: 'renda', name: 'Renda', hue: 152 },
 ];

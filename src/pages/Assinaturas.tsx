@@ -20,7 +20,7 @@ export function Assinaturas() {
   );
 
   return (
-    <div className="px-5 pt-[calc(env(safe-area-inset-top,0px)+20px)] pb-[130px]">
+    <div className="px-5 pt-5 pb-10">
       <div className="flex items-start justify-between mb-1">
         <div className="text-[26px] font-bold text-ink tracking-tight">Assinaturas</div>
         <button

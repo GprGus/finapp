@@ -1,11 +1,12 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import type { Account, AccountType, Entry, FinanceState, Goal, Subscription, CategoryId } from '../types';
+import type { Account, AccountType, Debt, Entry, FinanceState, Goal, Subscription, CategoryId } from '../types';
 import { apiFetch } from '../lib/api';
 
 const EMPTY_STATE: FinanceState = {
   accounts: [],
   goals: [],
   subscriptions: [],
+  debts: [],
   entries: [],
 };
 
@@ -30,6 +31,17 @@ interface FinanceContextValue {
     chargeNow: boolean;
   }) => Promise<void>;
   deleteSubscription: (id: string) => Promise<void>;
+  addDebt: (input: {
+    name: string;
+    accountId: string;
+    installmentAmount: number;
+    totalInstallments: number;
+    intervalDays: number;
+    nextChargeDate: string;
+    hue: number;
+    chargeNow: boolean;
+  }) => Promise<void>;
+  deleteDebt: (id: string) => Promise<void>;
   addEntry: (input: { date: string; desc: string; amount: number; categoryId: CategoryId; accountId: string }) => Promise<void>;
   deleteEntry: (id: string) => Promise<void>;
   accountBalance: (accountId: string) => number;
@@ -74,6 +86,8 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
         setState((s) => ({
           ...s,
           accounts: s.accounts.filter((a) => a.id !== id),
+          subscriptions: s.subscriptions.filter((sub) => sub.accountId !== id),
+          debts: s.debts.filter((d) => d.accountId !== id),
           entries: s.entries.filter((e) => e.accountId !== id),
         }));
       },
@@ -105,6 +119,22 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
       deleteSubscription: async (id) => {
         await apiFetch(`/subscriptions/${id}`, { method: 'DELETE' });
         setState((s) => ({ ...s, subscriptions: s.subscriptions.filter((sub) => sub.id !== id) }));
+      },
+
+      addDebt: async (input) => {
+        const { debt, entries: created } = await apiFetch<{ debt: Debt; entries: Entry[] }>('/debts', {
+          method: 'POST',
+          body: input,
+        });
+        setState((s) => ({
+          ...s,
+          debts: [...s.debts, debt],
+          entries: [...created, ...s.entries],
+        }));
+      },
+      deleteDebt: async (id) => {
+        await apiFetch(`/debts/${id}`, { method: 'DELETE' });
+        setState((s) => ({ ...s, debts: s.debts.filter((d) => d.id !== id) }));
       },
 
       addEntry: async (input) => {

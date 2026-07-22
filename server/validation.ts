@@ -52,6 +52,17 @@ export const createSubscriptionSchema = z
     path: ['endDate'],
   });
 
+export const createDebtSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  accountId: z.string().uuid(),
+  installmentAmount: z.number().finite().positive(),
+  totalInstallments: z.number().int().min(1).max(600),
+  intervalDays: z.number().int().min(1).max(3650),
+  nextChargeDate: isoDateSchema,
+  hue: z.number().int().min(0).max(360),
+  chargeNow: z.boolean().optional(),
+});
+
 const categoryIdSchema = z.enum([
   'moradia',
   'alimentacao',
@@ -60,6 +71,7 @@ const categoryIdSchema = z.enum([
   'lazer',
   'saude',
   'educacao',
+  'dividas',
   'outros',
   'renda',
 ]);
