@@ -92,8 +92,15 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
       },
 
       addSubscription: async (input) => {
-        const sub = await apiFetch<Subscription>('/subscriptions', { method: 'POST', body: input });
-        setState((s) => ({ ...s, subscriptions: [...s.subscriptions, sub] }));
+        const { subscription, entries: created } = await apiFetch<{
+          subscription: Subscription;
+          entries: Entry[];
+        }>('/subscriptions', { method: 'POST', body: input });
+        setState((s) => ({
+          ...s,
+          subscriptions: [...s.subscriptions, subscription],
+          entries: [...created, ...s.entries],
+        }));
       },
       deleteSubscription: async (id) => {
         await apiFetch(`/subscriptions/${id}`, { method: 'DELETE' });

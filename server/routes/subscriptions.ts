@@ -5,6 +5,7 @@ import { accounts, entries, subscriptions } from '../db/schema.js';
 import { requireAuth } from '../auth/middleware.js';
 import { createSubscriptionSchema } from '../validation.js';
 import { addDays, todayISO } from '../lib/dates.js';
+import { chargeOverdueCycles } from '../jobs/billSubscriptions.js';
 
 export const subscriptionsRouter = Router();
 subscriptionsRouter.use(requireAuth);
@@ -30,30 +31,41 @@ subscriptionsRouter.post('/', async (req, res) => {
     .values({ ...data, userId: req.userId! })
     .returning();
 
-  if (!chargeNow) {
-    res.status(201).json(subscription);
-    return;
+  let current = subscription;
+  const createdEntries = [];
+
+  if (chargeNow) {
+    const today = todayISO();
+    const [entry] = await db
+      .insert(entries)
+      .values({
+        userId: req.userId!,
+        accountId: current.accountId,
+        subscriptionId: current.id,
+        date: today,
+        desc: current.name,
+        amount: -current.price,
+        categoryId: 'assinaturas',
+        retro: false,
+      })
+      .returning();
+    createdEntries.push(entry);
+
+    const [updated] = await db
+      .update(subscriptions)
+      .set({ lastChargeDate: today, nextChargeDate: addDays(today, current.intervalDays) })
+      .where(eq(subscriptions.id, current.id))
+      .returning();
+    current = updated;
   }
 
-  const today = todayISO();
-  await db.insert(entries).values({
-    userId: req.userId!,
-    accountId: subscription.accountId,
-    subscriptionId: subscription.id,
-    date: today,
-    desc: subscription.name,
-    amount: -subscription.price,
-    categoryId: 'assinaturas',
-    retro: false,
-  });
+  // Catches up any cycles still overdue (e.g. a backdated "próxima cobrança") instead of
+  // waiting for the next hourly billing pass.
+  const caughtUp = await chargeOverdueCycles(current);
+  current = caughtUp.subscription;
+  createdEntries.push(...caughtUp.entries);
 
-  const [updated] = await db
-    .update(subscriptions)
-    .set({ lastChargeDate: today, nextChargeDate: addDays(today, subscription.intervalDays) })
-    .where(eq(subscriptions.id, subscription.id))
-    .returning();
-
-  res.status(201).json(updated);
+  res.status(201).json({ subscription: current, entries: createdEntries });
 });
 
 subscriptionsRouter.delete('/:id', async (req, res) => {
