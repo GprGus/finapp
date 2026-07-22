@@ -8,6 +8,13 @@
       "when": 1784654090253,
       "tag": "0000_fuzzy_sir_ram",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1784736679480,
+      "tag": "0001_mean_black_queen",
+      "breakpoints": true
     }
   ]
 }

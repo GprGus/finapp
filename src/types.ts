@@ -26,9 +26,14 @@ export interface Goal {
 
 export interface Subscription {
   id: string;
+  accountId: string;
   name: string;
   price: number;
-  renewDate: string;
+  intervalDays: number;
+  nextChargeDate: string;
+  lastChargeDate: string | null;
+  isRecurring: boolean;
+  endDate: string | null;
   hue: number;
   createdAt: string;
 }
@@ -57,6 +62,7 @@ export interface Entry {
   amount: number;
   categoryId: CategoryId;
   accountId: string;
+  subscriptionId: string | null;
   retro: boolean;
   createdAt: string;
 }

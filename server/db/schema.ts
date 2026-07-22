@@ -39,13 +39,21 @@ export const subscriptions = pgTable(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    accountId: uuid('account_id').notNull().references(() => accounts.id, { onDelete: 'cascade' }),
     name: text('name').notNull(),
     price: numeric('price', { mode: 'number', precision: 14, scale: 2 }).notNull(),
-    renewDate: date('renew_date').notNull(),
+    intervalDays: integer('interval_days').notNull().default(30),
+    nextChargeDate: date('renew_date').notNull(),
+    lastChargeDate: date('last_charge_date'),
+    isRecurring: boolean('is_recurring').notNull().default(true),
+    endDate: date('end_date'),
     hue: integer('hue').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index('subscriptions_user_id_idx').on(t.userId)],
+  (t) => [
+    index('subscriptions_user_id_idx').on(t.userId),
+    index('subscriptions_account_id_idx').on(t.accountId),
+  ],
 );
 
 export const entries = pgTable(
@@ -54,6 +62,7 @@ export const entries = pgTable(
     id: uuid('id').primaryKey().defaultRandom(),
     userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
     accountId: uuid('account_id').notNull().references(() => accounts.id, { onDelete: 'cascade' }),
+    subscriptionId: uuid('subscription_id').references(() => subscriptions.id, { onDelete: 'set null' }),
     date: date('date').notNull(),
     desc: text('desc').notNull(),
     amount: numeric('amount', { mode: 'number', precision: 14, scale: 2 }).notNull(),

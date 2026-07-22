@@ -18,7 +18,17 @@ interface FinanceContextValue {
   addGoal: (input: { name: string; target: number; current: number }) => Promise<void>;
   contributeToGoal: (id: string, amount: number) => Promise<void>;
   deleteGoal: (id: string) => Promise<void>;
-  addSubscription: (input: { name: string; price: number; renewDate: string; hue: number }) => Promise<void>;
+  addSubscription: (input: {
+    name: string;
+    price: number;
+    accountId: string;
+    intervalDays: number;
+    nextChargeDate: string;
+    isRecurring: boolean;
+    endDate: string | null;
+    hue: number;
+    chargeNow: boolean;
+  }) => Promise<void>;
   deleteSubscription: (id: string) => Promise<void>;
   addEntry: (input: { date: string; desc: string; amount: number; categoryId: CategoryId; accountId: string }) => Promise<void>;
   deleteEntry: (id: string) => Promise<void>;

@@ -33,12 +33,24 @@ export const contributeToGoalSchema = z.object({
   amount: z.number().finite(),
 });
 
-export const createSubscriptionSchema = z.object({
-  name: z.string().trim().min(1).max(120),
-  price: z.number().finite(),
-  renewDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  hue: z.number().int().min(0).max(360),
-});
+const isoDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+
+export const createSubscriptionSchema = z
+  .object({
+    name: z.string().trim().min(1).max(120),
+    price: z.number().finite(),
+    accountId: z.string().uuid(),
+    intervalDays: z.number().int().min(1).max(3650),
+    nextChargeDate: isoDateSchema,
+    isRecurring: z.boolean(),
+    endDate: isoDateSchema.nullable().optional(),
+    hue: z.number().int().min(0).max(360),
+    chargeNow: z.boolean().optional(),
+  })
+  .refine((data) => data.isRecurring || !!data.endDate, {
+    message: 'Data de término é obrigatória para assinaturas com término',
+    path: ['endDate'],
+  });
 
 const categoryIdSchema = z.enum([
   'moradia',

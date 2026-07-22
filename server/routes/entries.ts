@@ -4,13 +4,10 @@ import { db } from '../db/client.js';
 import { accounts, entries } from '../db/schema.js';
 import { requireAuth } from '../auth/middleware.js';
 import { createEntrySchema } from '../validation.js';
+import { todayISO } from '../lib/dates.js';
 
 export const entriesRouter = Router();
 entriesRouter.use(requireAuth);
-
-function todayISO(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 entriesRouter.post('/', async (req, res) => {
   const parsed = createEntrySchema.safeParse(req.body);

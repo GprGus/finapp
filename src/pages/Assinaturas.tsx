@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useFinance } from '../state/store';
-import { fmtBRL, daysUntil } from '../lib/format';
+import { fmtBRL, daysUntil, dateLabel } from '../lib/format';
 import { EmptyState } from '../components/EmptyState';
 import { ConfirmDeleteSheet } from '../components/ConfirmDeleteSheet';
 import { AddSubscriptionSheet } from '../components/AddSubscriptionSheet';
@@ -11,8 +11,11 @@ export function Assinaturas() {
   const [target, setTarget] = useState<Subscription | null>(null);
   const [showAdd, setShowAdd] = useState(false);
 
+  const isActive = (sub: Subscription) =>
+    sub.isRecurring || !sub.endDate || sub.nextChargeDate <= sub.endDate;
+
   const total = useMemo(
-    () => state.subscriptions.reduce((sum, s) => sum + s.price, 0),
+    () => state.subscriptions.filter(isActive).reduce((sum, s) => sum + s.price, 0),
     [state.subscriptions],
   );
 
@@ -40,8 +43,9 @@ export function Assinaturas() {
 
       <div className="flex flex-col gap-3">
         {state.subscriptions.map((sub) => {
-          const days = daysUntil(sub.renewDate);
-          const urgent = days <= 5;
+          const active = isActive(sub);
+          const days = daysUntil(sub.nextChargeDate);
+          const urgent = active && days <= 5;
           return (
             <button
               key={sub.id}
@@ -57,15 +61,29 @@ export function Assinaturas() {
               <div className="flex-1 min-w-0">
                 <div className="text-[14.5px] font-semibold text-ink">{sub.name}</div>
                 <div className="text-[12.5px] text-ink/50 mt-0.5">{fmtBRL(sub.price)}/mês</div>
+                <div className="text-[11.5px] text-ink/40 mt-0.5">
+                  {sub.lastChargeDate
+                    ? `Última cobrança: ${dateLabel(sub.lastChargeDate)}`
+                    : 'Ainda não cobrada'}
+                  {!sub.isRecurring && sub.endDate && ` · até ${dateLabel(sub.endDate)}`}
+                </div>
               </div>
               <div
                 className="text-[11.5px] font-bold px-2.5 py-1.5 rounded-lg whitespace-nowrap"
                 style={{
-                  color: urgent ? 'oklch(0.5 0.15 35)' : 'rgba(20,20,15,0.55)',
-                  background: urgent ? 'oklch(0.5 0.15 35 / 0.12)' : 'rgba(20,20,15,0.06)',
+                  color: !active ? 'rgba(20,20,15,0.4)' : urgent ? 'oklch(0.5 0.15 35)' : 'rgba(20,20,15,0.55)',
+                  background: !active
+                    ? 'rgba(20,20,15,0.06)'
+                    : urgent
+                      ? 'oklch(0.5 0.15 35 / 0.12)'
+                      : 'rgba(20,20,15,0.06)',
                 }}
               >
-                {days >= 0 ? `Renova em ${days}d` : `Venceu há ${-days}d`}
+                {!active
+                  ? 'Encerrada'
+                  : days >= 0
+                    ? `Próxima em ${days}d`
+                    : `Atrasada há ${-days}d`}
               </div>
             </button>
           );

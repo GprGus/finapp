@@ -10,8 +10,17 @@ import { accountsRouter } from './routes/accounts.js';
 import { goalsRouter } from './routes/goals.js';
 import { subscriptionsRouter } from './routes/subscriptions.js';
 import { entriesRouter } from './routes/entries.js';
+import { billDueSubscriptions } from './jobs/billSubscriptions.js';
 
 const distDir = path.resolve(process.cwd(), 'dist');
+const BILLING_CHECK_INTERVAL_MS = 60 * 60 * 1000;
+
+function startSubscriptionBillingLoop() {
+  billDueSubscriptions().catch((err) => console.error('Falha ao cobrar assinaturas', err));
+  setInterval(() => {
+    billDueSubscriptions().catch((err) => console.error('Falha ao cobrar assinaturas', err));
+  }, BILLING_CHECK_INTERVAL_MS);
+}
 
 async function main() {
   await runMigrations();
@@ -42,6 +51,8 @@ async function main() {
     res.status(500).json({ error: 'Erro interno' });
   };
   app.use(errorHandler);
+
+  startSubscriptionBillingLoop();
 
   const port = Number(process.env.PORT) || 3000;
   app.listen(port, () => {
