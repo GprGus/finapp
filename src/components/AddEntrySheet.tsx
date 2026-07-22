@@ -19,6 +19,7 @@ export function AddEntrySheet({ open, onClose }: { open: boolean; onClose: () =>
 
   const isDespesa = type === 'despesa';
   const isRetro = date < todayISO();
+  const isFuture = date > todayISO();
   const canSubmit = !!desc.trim() && !!date && !!parseFloat(amount) && !!accountId && !isSubmitting;
 
   const submit = async () => {
@@ -97,11 +98,18 @@ export function AddEntrySheet({ open, onClose }: { open: boolean; onClose: () =>
               LANÇAMENTO RETROATIVO
             </span>
           )}
+          {isFuture && (
+            <span
+              className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-md"
+              style={{ color: 'oklch(0.5 0.15 250)', background: 'oklch(0.5 0.15 250 / 0.12)' }}
+            >
+              LANÇAMENTO FUTURO
+            </span>
+          )}
         </div>
         <input
           type="date"
           value={date}
-          max={todayISO()}
           onChange={(e) => setDate(e.target.value)}
           className={inputClass}
         />

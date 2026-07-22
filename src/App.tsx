@@ -7,6 +7,7 @@ import { ProfileSheet } from './components/ProfileSheet';
 import { Dashboard } from './pages/Dashboard';
 import { Lancamentos } from './pages/Lancamentos';
 import { Assinaturas } from './pages/Assinaturas';
+import { GastosPrevistos } from './pages/GastosPrevistos';
 import { Relatorios } from './pages/Relatorios';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
@@ -45,6 +46,7 @@ function AppShell() {
       )}
       {tab === 'lancamentos' && <Lancamentos />}
       {tab === 'assinaturas' && <Assinaturas />}
+      {tab === 'previstos' && <GastosPrevistos />}
       {tab === 'relatorios' && <Relatorios />}
 
       <div className="fixed left-0 right-0 bottom-0 flex justify-center pointer-events-none z-70">

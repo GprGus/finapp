@@ -4,6 +4,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'dashboard', label: 'Início' },
   { id: 'lancamentos', label: 'Lançamentos' },
   { id: 'assinaturas', label: 'Assinaturas' },
+  { id: 'previstos', label: 'Previstos' },
   { id: 'relatorios', label: 'Relatórios' },
 ];
 
@@ -42,6 +43,14 @@ function Icon({ tab, color }: { tab: Tab; color: string }) {
           <rect x="3" y="11" width="4" height="8" rx="1" fill={color} />
           <rect x="9" y="6" width="4" height="13" rx="1" fill={color} />
           <rect x="15" y="2" width="4" height="17" rx="1" fill={color} />
+        </svg>
+      );
+    case 'previstos':
+      return (
+        <svg width="22" height="22" viewBox="0 0 22 22">
+          <rect x="3" y="4" width="16" height="14" rx="2" stroke={color} strokeWidth="2" fill="none" />
+          <path d="M3 8.5h16" stroke={color} strokeWidth="2" />
+          <path d="M7 2.5v4M15 2.5v4" stroke={color} strokeWidth="2" strokeLinecap="round" />
         </svg>
       );
   }

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useFinance } from '../state/store';
-import { fmtSigned, dateLabel } from '../lib/format';
+import { fmtSigned, dateLabel, todayISO } from '../lib/format';
 import { getCategory, categoryDotColor } from '../lib/categories';
 import { EmptyState } from '../components/EmptyState';
 import { ConfirmDeleteSheet } from '../components/ConfirmDeleteSheet';
@@ -69,6 +69,14 @@ export function Lancamentos() {
                           style={{ color: 'oklch(0.5 0.15 35)', background: 'oklch(0.5 0.15 35 / 0.12)' }}
                         >
                           RETROATIVO
+                        </div>
+                      )}
+                      {item.date > todayISO() && (
+                        <div
+                          className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-md flex-shrink-0"
+                          style={{ color: 'oklch(0.5 0.15 250)', background: 'oklch(0.5 0.15 250 / 0.12)' }}
+                        >
+                          FUTURO
                         </div>
                       )}
                     </div>

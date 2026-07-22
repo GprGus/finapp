@@ -1,4 +1,4 @@
-export type Tab = 'dashboard' | 'lancamentos' | 'assinaturas' | 'relatorios';
+export type Tab = 'dashboard' | 'lancamentos' | 'assinaturas' | 'relatorios' | 'previstos';
 
 export interface User {
   id: string;

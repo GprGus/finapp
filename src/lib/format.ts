@@ -30,3 +30,10 @@ export function daysUntil(iso: string): number {
   const target = new Date(iso + 'T00:00:00');
   return Math.round((target.getTime() - today.getTime()) / 86400000);
 }
+
+export function addDays(iso: string, days: number): string {
+  const d = new Date(iso + 'T00:00:00');
+  d.setDate(d.getDate() + days);
+  const pad = (x: number) => String(x).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
