@@ -8,6 +8,7 @@ import type { Subscription } from '../types';
 
 export function Assinaturas() {
   const { state, deleteSubscription } = useFinance();
+  const [editing, setEditing] = useState<Subscription | null>(null);
   const [target, setTarget] = useState<Subscription | null>(null);
   const [showAdd, setShowAdd] = useState(false);
 
@@ -49,7 +50,7 @@ export function Assinaturas() {
           return (
             <button
               key={sub.id}
-              onClick={() => setTarget(sub)}
+              onClick={() => setEditing(sub)}
               className="text-left flex items-center gap-3.5 bg-white border border-ink/8 rounded-[18px] px-4 py-3.5 cursor-pointer"
             >
               <div
@@ -90,7 +91,18 @@ export function Assinaturas() {
         })}
       </div>
 
-      <AddSubscriptionSheet open={showAdd} onClose={() => setShowAdd(false)} />
+      <AddSubscriptionSheet
+        open={showAdd || !!editing}
+        editing={editing}
+        onClose={() => {
+          setShowAdd(false);
+          setEditing(null);
+        }}
+        onRequestDelete={(sub) => {
+          setEditing(null);
+          setTarget(sub);
+        }}
+      />
 
       <ConfirmDeleteSheet
         open={!!target}

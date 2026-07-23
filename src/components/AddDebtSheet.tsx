@@ -1,22 +1,57 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Sheet, SheetTitle, Field, inputClass } from './Sheet';
 import { useFinance } from '../state/store';
 import { todayISO } from '../lib/format';
 import { ApiError } from '../lib/api';
+import type { Debt } from '../types';
 
 const HUES = [0, 15, 350, 335];
 
-export function AddDebtSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { state, addDebt } = useFinance();
+export function AddDebtSheet({
+  open,
+  editing,
+  onClose,
+  onRequestDelete,
+}: {
+  open: boolean;
+  editing?: Debt | null;
+  onClose: () => void;
+  onRequestDelete?: (debt: Debt) => void;
+}) {
+  const { state, addDebt, updateDebt } = useFinance();
   const [name, setName] = useState('');
   const [installmentAmount, setInstallmentAmount] = useState('');
   const [totalInstallments, setTotalInstallments] = useState('');
+  const [paidInstallments, setPaidInstallments] = useState('0');
   const [nextChargeDate, setNextChargeDate] = useState(todayISO());
   const [intervalDays, setIntervalDays] = useState('30');
   const [accountId, setAccountId] = useState(state.accounts[0]?.id ?? '');
   const [chargeNow, setChargeNow] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    setError(null);
+    setChargeNow(false);
+    if (editing) {
+      setName(editing.name);
+      setInstallmentAmount(String(editing.installmentAmount));
+      setTotalInstallments(String(editing.totalInstallments));
+      setPaidInstallments(String(editing.paidInstallments));
+      setNextChargeDate(editing.nextChargeDate);
+      setIntervalDays(String(editing.intervalDays));
+      setAccountId(editing.accountId);
+    } else {
+      setName('');
+      setInstallmentAmount('');
+      setTotalInstallments('');
+      setPaidInstallments('0');
+      setNextChargeDate(todayISO());
+      setIntervalDays('30');
+      setAccountId(state.accounts[0]?.id ?? '');
+    }
+  }, [open, editing]);
 
   const canSubmit =
     !!name.trim() &&
@@ -25,37 +60,35 @@ export function AddDebtSheet({ open, onClose }: { open: boolean; onClose: () => 
     !!nextChargeDate &&
     parseInt(intervalDays, 10) > 0 &&
     !!accountId &&
+    (!editing || parseInt(paidInstallments, 10) <= parseInt(totalInstallments, 10)) &&
     !isSubmitting;
-
-  const reset = () => {
-    setName('');
-    setInstallmentAmount('');
-    setTotalInstallments('');
-    setNextChargeDate(todayISO());
-    setIntervalDays('30');
-    setChargeNow(false);
-  };
 
   const submit = async () => {
     if (!canSubmit) return;
     setIsSubmitting(true);
     setError(null);
     try {
-      const hue = HUES[Math.floor(Math.random() * HUES.length)];
-      await addDebt({
+      const shared = {
         name: name.trim(),
         accountId,
         installmentAmount: parseFloat(installmentAmount),
         totalInstallments: parseInt(totalInstallments, 10),
         intervalDays: parseInt(intervalDays, 10),
         nextChargeDate,
-        hue,
-        chargeNow,
-      });
-      reset();
+      };
+      if (editing) {
+        await updateDebt(editing.id, {
+          ...shared,
+          paidInstallments: parseInt(paidInstallments, 10),
+          hue: editing.hue,
+        });
+      } else {
+        const hue = HUES[Math.floor(Math.random() * HUES.length)];
+        await addDebt({ ...shared, hue, chargeNow });
+      }
       onClose();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Erro ao adicionar dívida');
+      setError(err instanceof ApiError ? err.message : 'Erro ao salvar dívida');
     } finally {
       setIsSubmitting(false);
     }
@@ -74,7 +107,7 @@ export function AddDebtSheet({ open, onClose }: { open: boolean; onClose: () => 
 
   return (
     <Sheet open={open} onClose={onClose}>
-      <SheetTitle>Nova dívida</SheetTitle>
+      <SheetTitle>{editing ? 'Editar dívida' : 'Nova dívida'}</SheetTitle>
 
       <Field label="Nome">
         <input
@@ -111,9 +144,21 @@ export function AddDebtSheet({ open, onClose }: { open: boolean; onClose: () => 
         </div>
       </div>
 
+      {editing && (
+        <Field label="Parcelas já pagas">
+          <input
+            className={inputClass}
+            type="number"
+            min={0}
+            value={paidInstallments}
+            onChange={(e) => setPaidInstallments(e.target.value)}
+          />
+        </Field>
+      )}
+
       <div className="flex gap-2.5 mb-3.5">
         <div className="flex-1">
-          <Field label="Primeira cobrança">
+          <Field label={editing ? 'Próxima cobrança' : 'Primeira cobrança'}>
             <input
               className={inputClass}
               type="date"
@@ -158,33 +203,35 @@ export function AddDebtSheet({ open, onClose }: { open: boolean; onClose: () => 
         </div>
       </div>
 
-      <div className="mb-4">
-        <div className="text-xs text-ink/50 mb-1.5">Incluir a primeira parcela na fatura atual?</div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setChargeNow(true)}
-            className="flex-1 py-2.5 rounded-xl border text-sm font-semibold cursor-pointer"
-            style={{
-              borderColor: 'rgba(20,20,15,0.1)',
-              background: chargeNow ? '#14140F' : '#fff',
-              color: chargeNow ? '#fff' : 'rgba(20,20,15,0.6)',
-            }}
-          >
-            Sim, agora
-          </button>
-          <button
-            onClick={() => setChargeNow(false)}
-            className="flex-1 py-2.5 rounded-xl border text-sm font-semibold cursor-pointer"
-            style={{
-              borderColor: 'rgba(20,20,15,0.1)',
-              background: !chargeNow ? '#14140F' : '#fff',
-              color: !chargeNow ? '#fff' : 'rgba(20,20,15,0.6)',
-            }}
-          >
-            Só nas próximas
-          </button>
+      {!editing && (
+        <div className="mb-4">
+          <div className="text-xs text-ink/50 mb-1.5">Incluir a primeira parcela na fatura atual?</div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setChargeNow(true)}
+              className="flex-1 py-2.5 rounded-xl border text-sm font-semibold cursor-pointer"
+              style={{
+                borderColor: 'rgba(20,20,15,0.1)',
+                background: chargeNow ? '#14140F' : '#fff',
+                color: chargeNow ? '#fff' : 'rgba(20,20,15,0.6)',
+              }}
+            >
+              Sim, agora
+            </button>
+            <button
+              onClick={() => setChargeNow(false)}
+              className="flex-1 py-2.5 rounded-xl border text-sm font-semibold cursor-pointer"
+              style={{
+                borderColor: 'rgba(20,20,15,0.1)',
+                background: !chargeNow ? '#14140F' : '#fff',
+                color: !chargeNow ? '#fff' : 'rgba(20,20,15,0.6)',
+              }}
+            >
+              Só nas próximas
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {error && (
         <div className="text-[13px] mb-3.5" style={{ color: 'oklch(0.5 0.15 35)' }}>
@@ -201,8 +248,18 @@ export function AddDebtSheet({ open, onClose }: { open: boolean; onClose: () => 
           color: canSubmit ? '#fff' : 'rgba(20,20,15,0.4)',
         }}
       >
-        {isSubmitting ? 'Adicionando…' : 'Adicionar dívida'}
+        {isSubmitting ? 'Salvando…' : editing ? 'Salvar alterações' : 'Adicionar dívida'}
       </button>
+
+      {editing && onRequestDelete && (
+        <button
+          onClick={() => onRequestDelete(editing)}
+          className="w-full py-[13px] rounded-2xl border-none text-[14px] font-bold cursor-pointer bg-transparent mt-2.5"
+          style={{ color: 'oklch(0.5 0.15 35)' }}
+        >
+          Excluir dívida
+        </button>
+      )}
     </Sheet>
   );
 }

@@ -8,6 +8,7 @@ import type { Debt } from '../types';
 
 export function Dividas() {
   const { state, deleteDebt } = useFinance();
+  const [editing, setEditing] = useState<Debt | null>(null);
   const [target, setTarget] = useState<Debt | null>(null);
   const [showAdd, setShowAdd] = useState(false);
 
@@ -50,7 +51,7 @@ export function Dividas() {
           return (
             <button
               key={debt.id}
-              onClick={() => setTarget(debt)}
+              onClick={() => setEditing(debt)}
               className="text-left flex flex-col gap-2.5 bg-white border border-ink/8 rounded-[18px] px-4 py-3.5 cursor-pointer"
             >
               <div className="flex items-center gap-3.5">
@@ -94,7 +95,18 @@ export function Dividas() {
         })}
       </div>
 
-      <AddDebtSheet open={showAdd} onClose={() => setShowAdd(false)} />
+      <AddDebtSheet
+        open={showAdd || !!editing}
+        editing={editing}
+        onClose={() => {
+          setShowAdd(false);
+          setEditing(null);
+        }}
+        onRequestDelete={(debt) => {
+          setEditing(null);
+          setTarget(debt);
+        }}
+      />
 
       <ConfirmDeleteSheet
         open={!!target}

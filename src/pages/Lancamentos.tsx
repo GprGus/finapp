@@ -1,14 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useFinance } from '../state/store';
 import { fmtSigned, dateLabel, todayISO } from '../lib/format';
 import { getCategory, categoryDotColor } from '../lib/categories';
 import { EmptyState } from '../components/EmptyState';
-import { ConfirmDeleteSheet } from '../components/ConfirmDeleteSheet';
 import type { Entry } from '../types';
 
-export function Lancamentos() {
-  const { state, deleteEntry } = useFinance();
-  const [target, setTarget] = useState<Entry | null>(null);
+export function Lancamentos({ onSelectEntry }: { onSelectEntry: (entry: Entry) => void }) {
+  const { state } = useFinance();
 
   const groups = useMemo(() => {
     const sorted = [...state.entries].sort((a, b) => b.date.localeCompare(a.date));
@@ -51,7 +49,7 @@ export function Lancamentos() {
               return (
                 <button
                   key={item.id}
-                  onClick={() => setTarget(item)}
+                  onClick={() => onSelectEntry(item)}
                   className="w-full text-left flex items-center gap-3 px-4 py-[13px] relative cursor-pointer bg-transparent border-none"
                 >
                   <div
@@ -99,15 +97,6 @@ export function Lancamentos() {
           </div>
         </div>
       ))}
-
-      <ConfirmDeleteSheet
-        open={!!target}
-        title={`Excluir "${target?.desc}"?`}
-        onConfirm={async () => {
-          if (target) await deleteEntry(target.id);
-        }}
-        onClose={() => setTarget(null)}
-      />
     </div>
   );
 }

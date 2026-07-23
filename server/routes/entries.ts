@@ -33,6 +33,35 @@ entriesRouter.post('/', async (req, res) => {
   res.status(201).json(entry);
 });
 
+entriesRouter.patch('/:id', async (req, res) => {
+  const parsed = createEntrySchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: 'Dados inválidos' });
+    return;
+  }
+
+  const account = await db.query.accounts.findFirst({
+    where: and(eq(accounts.id, parsed.data.accountId), eq(accounts.userId, req.userId!)),
+  });
+  if (!account) {
+    res.status(404).json({ error: 'Conta não encontrada' });
+    return;
+  }
+
+  const [entry] = await db
+    .update(entries)
+    .set({ ...parsed.data, retro: parsed.data.date < todayISO() })
+    .where(and(eq(entries.id, req.params.id), eq(entries.userId, req.userId!)))
+    .returning();
+
+  if (!entry) {
+    res.status(404).json({ error: 'Lançamento não encontrado' });
+    return;
+  }
+
+  res.json(entry);
+});
+
 entriesRouter.delete('/:id', async (req, res) => {
   const [deleted] = await db
     .delete(entries)

@@ -1,13 +1,23 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Sheet, SheetTitle, Field, inputClass } from './Sheet';
 import { useFinance } from '../state/store';
 import { EXPENSE_CATEGORIES, categoryBarColor } from '../lib/categories';
 import { todayISO } from '../lib/format';
 import { ApiError } from '../lib/api';
-import type { CategoryId } from '../types';
+import type { CategoryId, Entry } from '../types';
 
-export function AddEntrySheet({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { state, addEntry } = useFinance();
+export function AddEntrySheet({
+  open,
+  editing,
+  onClose,
+  onRequestDelete,
+}: {
+  open: boolean;
+  editing?: Entry | null;
+  onClose: () => void;
+  onRequestDelete?: (entry: Entry) => void;
+}) {
+  const { state, addEntry, updateEntry } = useFinance();
   const [type, setType] = useState<'despesa' | 'receita'>('despesa');
   const [date, setDate] = useState(todayISO());
   const [desc, setDesc] = useState('');
@@ -16,6 +26,27 @@ export function AddEntrySheet({ open, onClose }: { open: boolean; onClose: () =>
   const [accountId, setAccountId] = useState(state.accounts[0]?.id ?? '');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    setError(null);
+    if (editing) {
+      const isReceita = editing.amount >= 0;
+      setType(isReceita ? 'receita' : 'despesa');
+      setDate(editing.date);
+      setDesc(editing.desc);
+      setAmount(String(Math.abs(editing.amount)));
+      setCategory(isReceita ? 'moradia' : editing.categoryId);
+      setAccountId(editing.accountId);
+    } else {
+      setType('despesa');
+      setDate(todayISO());
+      setDesc('');
+      setAmount('');
+      setCategory('moradia');
+      setAccountId(state.accounts[0]?.id ?? '');
+    }
+  }, [open, editing]);
 
   const isDespesa = type === 'despesa';
   const isRetro = date < todayISO();
@@ -28,20 +59,21 @@ export function AddEntrySheet({ open, onClose }: { open: boolean; onClose: () =>
     setError(null);
     try {
       const amt = parseFloat(amount);
-      await addEntry({
+      const input = {
         date,
         desc: desc.trim(),
         amount: isDespesa ? -Math.abs(amt) : Math.abs(amt),
-        categoryId: isDespesa ? category : 'renda',
+        categoryId: isDespesa ? category : ('renda' as CategoryId),
         accountId,
-      });
-      setDesc('');
-      setAmount('');
-      setDate(todayISO());
-      setType('despesa');
+      };
+      if (editing) {
+        await updateEntry(editing.id, input);
+      } else {
+        await addEntry(input);
+      }
       onClose();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Erro ao adicionar lançamento');
+      setError(err instanceof ApiError ? err.message : 'Erro ao salvar lançamento');
     } finally {
       setIsSubmitting(false);
     }
@@ -60,7 +92,7 @@ export function AddEntrySheet({ open, onClose }: { open: boolean; onClose: () =>
 
   return (
     <Sheet open={open} onClose={onClose}>
-      <SheetTitle>Novo lançamento</SheetTitle>
+      <SheetTitle>{editing ? 'Editar lançamento' : 'Novo lançamento'}</SheetTitle>
 
       <div className="flex gap-2 mb-4">
         <button
@@ -198,8 +230,18 @@ export function AddEntrySheet({ open, onClose }: { open: boolean; onClose: () =>
           color: canSubmit ? '#fff' : 'rgba(20,20,15,0.4)',
         }}
       >
-        {isSubmitting ? 'Adicionando…' : 'Adicionar lançamento'}
+        {isSubmitting ? 'Salvando…' : editing ? 'Salvar alterações' : 'Adicionar lançamento'}
       </button>
+
+      {editing && onRequestDelete && (
+        <button
+          onClick={() => onRequestDelete(editing)}
+          className="w-full py-[13px] rounded-2xl border-none text-[14px] font-bold cursor-pointer bg-transparent mt-2.5"
+          style={{ color: 'oklch(0.5 0.15 35)' }}
+        >
+          Excluir lançamento
+        </button>
+      )}
     </Sheet>
   );
 }

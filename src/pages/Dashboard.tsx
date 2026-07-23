@@ -27,6 +27,7 @@ export function Dashboard({
 }) {
   const { state, accountBalance, deleteAccount } = useFinance();
   const [showAddAccount, setShowAddAccount] = useState(false);
+  const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [showAddGoal, setShowAddGoal] = useState(false);
   const [activeGoalId, setActiveGoalId] = useState<string | null>(null);
   const [deleteAccountTarget, setDeleteAccountTarget] = useState<Account | null>(null);
@@ -71,7 +72,7 @@ export function Dashboard({
         {state.accounts.map((acc) => (
           <button
             key={acc.id}
-            onClick={() => setDeleteAccountTarget(acc)}
+            onClick={() => setEditingAccount(acc)}
             className="flex-none w-[168px] text-left bg-white border border-ink/8 rounded-[18px] p-4 cursor-pointer"
           >
             <div className="text-[11px] text-ink/45 uppercase tracking-wide mb-2">{acc.type}</div>
@@ -171,7 +172,18 @@ export function Dashboard({
         </div>
       )}
 
-      <AddAccountSheet open={showAddAccount} onClose={() => setShowAddAccount(false)} />
+      <AddAccountSheet
+        open={showAddAccount || !!editingAccount}
+        editing={editingAccount}
+        onClose={() => {
+          setShowAddAccount(false);
+          setEditingAccount(null);
+        }}
+        onRequestDelete={(acc) => {
+          setEditingAccount(null);
+          setDeleteAccountTarget(acc);
+        }}
+      />
       <AddGoalSheet open={showAddGoal} onClose={() => setShowAddGoal(false)} />
       <GoalActionSheet goal={activeGoal} onClose={() => setActiveGoalId(null)} />
       <ConfirmDeleteSheet

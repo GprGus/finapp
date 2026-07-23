@@ -15,8 +15,10 @@ interface FinanceContextValue {
   isLoading: boolean;
   error: string | null;
   addAccount: (input: { name: string; type: AccountType; openingBalance: number }) => Promise<void>;
+  updateAccount: (id: string, input: { name: string; type: AccountType; openingBalance: number }) => Promise<void>;
   deleteAccount: (id: string) => Promise<void>;
   addGoal: (input: { name: string; target: number; current: number }) => Promise<void>;
+  updateGoal: (id: string, input: { name: string; target: number; current: number }) => Promise<void>;
   contributeToGoal: (id: string, amount: number) => Promise<void>;
   deleteGoal: (id: string) => Promise<void>;
   addSubscription: (input: {
@@ -30,6 +32,19 @@ interface FinanceContextValue {
     hue: number;
     chargeNow: boolean;
   }) => Promise<void>;
+  updateSubscription: (
+    id: string,
+    input: {
+      name: string;
+      price: number;
+      accountId: string;
+      intervalDays: number;
+      nextChargeDate: string;
+      isRecurring: boolean;
+      endDate: string | null;
+      hue: number;
+    },
+  ) => Promise<void>;
   deleteSubscription: (id: string) => Promise<void>;
   addDebt: (input: {
     name: string;
@@ -41,8 +56,25 @@ interface FinanceContextValue {
     hue: number;
     chargeNow: boolean;
   }) => Promise<void>;
+  updateDebt: (
+    id: string,
+    input: {
+      name: string;
+      accountId: string;
+      installmentAmount: number;
+      totalInstallments: number;
+      paidInstallments: number;
+      intervalDays: number;
+      nextChargeDate: string;
+      hue: number;
+    },
+  ) => Promise<void>;
   deleteDebt: (id: string) => Promise<void>;
   addEntry: (input: { date: string; desc: string; amount: number; categoryId: CategoryId; accountId: string }) => Promise<void>;
+  updateEntry: (
+    id: string,
+    input: { date: string; desc: string; amount: number; categoryId: CategoryId; accountId: string },
+  ) => Promise<void>;
   deleteEntry: (id: string) => Promise<void>;
   accountBalance: (accountId: string) => number;
 }
@@ -81,6 +113,10 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
         const acc = await apiFetch<Account>('/accounts', { method: 'POST', body: input });
         setState((s) => ({ ...s, accounts: [...s.accounts, acc] }));
       },
+      updateAccount: async (id, input) => {
+        const acc = await apiFetch<Account>(`/accounts/${id}`, { method: 'PATCH', body: input });
+        setState((s) => ({ ...s, accounts: s.accounts.map((a) => (a.id === id ? acc : a)) }));
+      },
       deleteAccount: async (id) => {
         await apiFetch(`/accounts/${id}`, { method: 'DELETE' });
         setState((s) => ({
@@ -95,6 +131,10 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
       addGoal: async (input) => {
         const goal = await apiFetch<Goal>('/goals', { method: 'POST', body: input });
         setState((s) => ({ ...s, goals: [...s.goals, goal] }));
+      },
+      updateGoal: async (id, input) => {
+        const goal = await apiFetch<Goal>(`/goals/${id}`, { method: 'PATCH', body: input });
+        setState((s) => ({ ...s, goals: s.goals.map((g) => (g.id === id ? goal : g)) }));
       },
       contributeToGoal: async (id, amount) => {
         const goal = await apiFetch<Goal>(`/goals/${id}/contribute`, { method: 'POST', body: { amount } });
@@ -116,6 +156,10 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
           entries: [...created, ...s.entries],
         }));
       },
+      updateSubscription: async (id, input) => {
+        const subscription = await apiFetch<Subscription>(`/subscriptions/${id}`, { method: 'PATCH', body: input });
+        setState((s) => ({ ...s, subscriptions: s.subscriptions.map((sub) => (sub.id === id ? subscription : sub)) }));
+      },
       deleteSubscription: async (id) => {
         await apiFetch(`/subscriptions/${id}`, { method: 'DELETE' });
         setState((s) => ({ ...s, subscriptions: s.subscriptions.filter((sub) => sub.id !== id) }));
@@ -132,6 +176,10 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
           entries: [...created, ...s.entries],
         }));
       },
+      updateDebt: async (id, input) => {
+        const debt = await apiFetch<Debt>(`/debts/${id}`, { method: 'PATCH', body: input });
+        setState((s) => ({ ...s, debts: s.debts.map((d) => (d.id === id ? debt : d)) }));
+      },
       deleteDebt: async (id) => {
         await apiFetch(`/debts/${id}`, { method: 'DELETE' });
         setState((s) => ({ ...s, debts: s.debts.filter((d) => d.id !== id) }));
@@ -140,6 +188,10 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
       addEntry: async (input) => {
         const entry = await apiFetch<Entry>('/entries', { method: 'POST', body: input });
         setState((s) => ({ ...s, entries: [entry, ...s.entries] }));
+      },
+      updateEntry: async (id, input) => {
+        const entry = await apiFetch<Entry>(`/entries/${id}`, { method: 'PATCH', body: input });
+        setState((s) => ({ ...s, entries: s.entries.map((e) => (e.id === id ? entry : e)) }));
       },
       deleteEntry: async (id) => {
         await apiFetch(`/entries/${id}`, { method: 'DELETE' });

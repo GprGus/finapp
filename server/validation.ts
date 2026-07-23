@@ -52,6 +52,22 @@ export const createSubscriptionSchema = z
     path: ['endDate'],
   });
 
+export const updateSubscriptionSchema = z
+  .object({
+    name: z.string().trim().min(1).max(120),
+    price: z.number().finite(),
+    accountId: z.string().uuid(),
+    intervalDays: z.number().int().min(1).max(3650),
+    nextChargeDate: isoDateSchema,
+    isRecurring: z.boolean(),
+    endDate: isoDateSchema.nullable().optional(),
+    hue: z.number().int().min(0).max(360),
+  })
+  .refine((data) => data.isRecurring || !!data.endDate, {
+    message: 'Data de término é obrigatória para assinaturas com término',
+    path: ['endDate'],
+  });
+
 export const createDebtSchema = z.object({
   name: z.string().trim().min(1).max(120),
   accountId: z.string().uuid(),
@@ -62,6 +78,22 @@ export const createDebtSchema = z.object({
   hue: z.number().int().min(0).max(360),
   chargeNow: z.boolean().optional(),
 });
+
+export const updateDebtSchema = z
+  .object({
+    name: z.string().trim().min(1).max(120),
+    accountId: z.string().uuid(),
+    installmentAmount: z.number().finite().positive(),
+    totalInstallments: z.number().int().min(1).max(600),
+    paidInstallments: z.number().int().min(0),
+    intervalDays: z.number().int().min(1).max(3650),
+    nextChargeDate: isoDateSchema,
+    hue: z.number().int().min(0).max(360),
+  })
+  .refine((data) => data.paidInstallments <= data.totalInstallments, {
+    message: 'Parcelas pagas não pode ser maior que o total de parcelas',
+    path: ['paidInstallments'],
+  });
 
 const categoryIdSchema = z.enum([
   'moradia',

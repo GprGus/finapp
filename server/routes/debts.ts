@@ -3,7 +3,7 @@ import { and, eq } from 'drizzle-orm';
 import { db } from '../db/client.js';
 import { accounts, debts, entries } from '../db/schema.js';
 import { requireAuth } from '../auth/middleware.js';
-import { createDebtSchema } from '../validation.js';
+import { createDebtSchema, updateDebtSchema } from '../validation.js';
 import { addDays, todayISO } from '../lib/dates.js';
 import { chargeOverdueDebtCycles } from '../jobs/billDebts.js';
 
@@ -70,6 +70,35 @@ debtsRouter.post('/', async (req, res) => {
   createdEntries.push(...caughtUp.entries);
 
   res.status(201).json({ debt: current, entries: createdEntries });
+});
+
+debtsRouter.patch('/:id', async (req, res) => {
+  const parsed = updateDebtSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: 'Dados inválidos' });
+    return;
+  }
+
+  const account = await db.query.accounts.findFirst({
+    where: and(eq(accounts.id, parsed.data.accountId), eq(accounts.userId, req.userId!)),
+  });
+  if (!account) {
+    res.status(404).json({ error: 'Conta não encontrada' });
+    return;
+  }
+
+  const [debt] = await db
+    .update(debts)
+    .set(parsed.data)
+    .where(and(eq(debts.id, req.params.id), eq(debts.userId, req.userId!)))
+    .returning();
+
+  if (!debt) {
+    res.status(404).json({ error: 'Dívida não encontrada' });
+    return;
+  }
+
+  res.json(debt);
 });
 
 debtsRouter.delete('/:id', async (req, res) => {

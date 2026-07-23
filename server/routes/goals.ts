@@ -23,6 +23,27 @@ goalsRouter.post('/', async (req, res) => {
   res.status(201).json(goal);
 });
 
+goalsRouter.patch('/:id', async (req, res) => {
+  const parsed = createGoalSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: 'Dados inválidos' });
+    return;
+  }
+
+  const [goal] = await db
+    .update(goals)
+    .set(parsed.data)
+    .where(and(eq(goals.id, req.params.id), eq(goals.userId, req.userId!)))
+    .returning();
+
+  if (!goal) {
+    res.status(404).json({ error: 'Meta não encontrada' });
+    return;
+  }
+
+  res.json(goal);
+});
+
 goalsRouter.post('/:id/contribute', async (req, res) => {
   const parsed = contributeToGoalSchema.safeParse(req.body);
   if (!parsed.success) {

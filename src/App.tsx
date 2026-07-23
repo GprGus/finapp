@@ -3,6 +3,7 @@ import { FinanceProvider, useFinance } from './state/store';
 import { AuthProvider, useAuth } from './state/auth';
 import { SideDrawer } from './components/SideDrawer';
 import { AddEntrySheet } from './components/AddEntrySheet';
+import { ConfirmDeleteSheet } from './components/ConfirmDeleteSheet';
 import { ProfileSheet } from './components/ProfileSheet';
 import { Dashboard } from './pages/Dashboard';
 import { Lancamentos } from './pages/Lancamentos';
@@ -12,7 +13,7 @@ import { GastosPrevistos } from './pages/GastosPrevistos';
 import { Relatorios } from './pages/Relatorios';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
-import type { Tab } from './types';
+import type { Entry, Tab } from './types';
 
 function MenuButton({ onClick }: { onClick: () => void }) {
   return (
@@ -33,10 +34,12 @@ function MenuButton({ onClick }: { onClick: () => void }) {
 function AppShell() {
   const [tab, setTab] = useState<Tab>('dashboard');
   const [showAdd, setShowAdd] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<Entry | null>(null);
+  const [deleteEntryTarget, setDeleteEntryTarget] = useState<Entry | null>(null);
   const [showProfile, setShowProfile] = useState(false);
   const [showDrawer, setShowDrawer] = useState(false);
   const { user, updateProfile } = useAuth();
-  const { isLoading, error } = useFinance();
+  const { isLoading, error, deleteEntry } = useFinance();
   const name = user?.name ?? '';
 
   if (isLoading) {
@@ -73,7 +76,7 @@ function AppShell() {
       {tab === 'dashboard' && (
         <Dashboard name={name} onOpenProfile={() => setShowProfile(true)} onNavigate={setTab} />
       )}
-      {tab === 'lancamentos' && <Lancamentos />}
+      {tab === 'lancamentos' && <Lancamentos onSelectEntry={setEditingEntry} />}
       {tab === 'assinaturas' && <Assinaturas />}
       {tab === 'dividas' && <Dividas />}
       {tab === 'previstos' && <GastosPrevistos />}
@@ -93,7 +96,26 @@ function AppShell() {
       )}
 
       <SideDrawer open={showDrawer} tab={tab} onChange={setTab} onClose={() => setShowDrawer(false)} />
-      <AddEntrySheet open={showAdd} onClose={() => setShowAdd(false)} />
+      <AddEntrySheet
+        open={showAdd || !!editingEntry}
+        editing={editingEntry}
+        onClose={() => {
+          setShowAdd(false);
+          setEditingEntry(null);
+        }}
+        onRequestDelete={(entry) => {
+          setEditingEntry(null);
+          setDeleteEntryTarget(entry);
+        }}
+      />
+      <ConfirmDeleteSheet
+        open={!!deleteEntryTarget}
+        title={`Excluir "${deleteEntryTarget?.desc}"?`}
+        onConfirm={async () => {
+          if (deleteEntryTarget) await deleteEntry(deleteEntryTarget.id);
+        }}
+        onClose={() => setDeleteEntryTarget(null)}
+      />
       <ProfileSheet
         open={showProfile}
         name={name}

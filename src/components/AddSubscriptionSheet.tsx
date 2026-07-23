@@ -1,13 +1,24 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Sheet, SheetTitle, Field, inputClass } from './Sheet';
 import { useFinance } from '../state/store';
 import { todayISO } from '../lib/format';
 import { ApiError } from '../lib/api';
+import type { Subscription } from '../types';
 
 const HUES = [40, 140, 250, 300, 20, 10, 220, 90, 152, 60];
 
-export function AddSubscriptionSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { state, addSubscription } = useFinance();
+export function AddSubscriptionSheet({
+  open,
+  editing,
+  onClose,
+  onRequestDelete,
+}: {
+  open: boolean;
+  editing?: Subscription | null;
+  onClose: () => void;
+  onRequestDelete?: (subscription: Subscription) => void;
+}) {
+  const { state, addSubscription, updateSubscription } = useFinance();
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [nextChargeDate, setNextChargeDate] = useState(todayISO());
@@ -19,6 +30,29 @@ export function AddSubscriptionSheet({ open, onClose }: { open: boolean; onClose
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    if (!open) return;
+    setError(null);
+    setChargeNow(false);
+    if (editing) {
+      setName(editing.name);
+      setPrice(String(editing.price));
+      setNextChargeDate(editing.nextChargeDate);
+      setIntervalDays(String(editing.intervalDays));
+      setAccountId(editing.accountId);
+      setIsRecurring(editing.isRecurring);
+      setEndDate(editing.endDate ?? '');
+    } else {
+      setName('');
+      setPrice('');
+      setNextChargeDate(todayISO());
+      setIntervalDays('30');
+      setAccountId(state.accounts[0]?.id ?? '');
+      setIsRecurring(true);
+      setEndDate('');
+    }
+  }, [open, editing]);
+
   const canSubmit =
     !!name.trim() &&
     parseFloat(price) > 0 &&
@@ -28,23 +62,12 @@ export function AddSubscriptionSheet({ open, onClose }: { open: boolean; onClose
     (isRecurring || !!endDate) &&
     !isSubmitting;
 
-  const reset = () => {
-    setName('');
-    setPrice('');
-    setNextChargeDate(todayISO());
-    setIntervalDays('30');
-    setIsRecurring(true);
-    setEndDate('');
-    setChargeNow(false);
-  };
-
   const submit = async () => {
     if (!canSubmit) return;
     setIsSubmitting(true);
     setError(null);
     try {
-      const hue = HUES[Math.floor(Math.random() * HUES.length)];
-      await addSubscription({
+      const shared = {
         name: name.trim(),
         price: parseFloat(price),
         accountId,
@@ -52,13 +75,16 @@ export function AddSubscriptionSheet({ open, onClose }: { open: boolean; onClose
         nextChargeDate,
         isRecurring,
         endDate: isRecurring ? null : endDate,
-        hue,
-        chargeNow,
-      });
-      reset();
+      };
+      if (editing) {
+        await updateSubscription(editing.id, { ...shared, hue: editing.hue });
+      } else {
+        const hue = HUES[Math.floor(Math.random() * HUES.length)];
+        await addSubscription({ ...shared, hue, chargeNow });
+      }
       onClose();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Erro ao adicionar assinatura');
+      setError(err instanceof ApiError ? err.message : 'Erro ao salvar assinatura');
     } finally {
       setIsSubmitting(false);
     }
@@ -77,7 +103,7 @@ export function AddSubscriptionSheet({ open, onClose }: { open: boolean; onClose
 
   return (
     <Sheet open={open} onClose={onClose}>
-      <SheetTitle>Nova assinatura</SheetTitle>
+      <SheetTitle>{editing ? 'Editar assinatura' : 'Nova assinatura'}</SheetTitle>
 
       <Field label="Nome">
         <input
@@ -184,33 +210,35 @@ export function AddSubscriptionSheet({ open, onClose }: { open: boolean; onClose
         </Field>
       )}
 
-      <div className="mb-4">
-        <div className="text-xs text-ink/50 mb-1.5">Incluir cobrança na fatura atual?</div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setChargeNow(true)}
-            className="flex-1 py-2.5 rounded-xl border text-sm font-semibold cursor-pointer"
-            style={{
-              borderColor: 'rgba(20,20,15,0.1)',
-              background: chargeNow ? '#14140F' : '#fff',
-              color: chargeNow ? '#fff' : 'rgba(20,20,15,0.6)',
-            }}
-          >
-            Sim, agora
-          </button>
-          <button
-            onClick={() => setChargeNow(false)}
-            className="flex-1 py-2.5 rounded-xl border text-sm font-semibold cursor-pointer"
-            style={{
-              borderColor: 'rgba(20,20,15,0.1)',
-              background: !chargeNow ? '#14140F' : '#fff',
-              color: !chargeNow ? '#fff' : 'rgba(20,20,15,0.6)',
-            }}
-          >
-            Só nas próximas
-          </button>
+      {!editing && (
+        <div className="mb-4">
+          <div className="text-xs text-ink/50 mb-1.5">Incluir cobrança na fatura atual?</div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setChargeNow(true)}
+              className="flex-1 py-2.5 rounded-xl border text-sm font-semibold cursor-pointer"
+              style={{
+                borderColor: 'rgba(20,20,15,0.1)',
+                background: chargeNow ? '#14140F' : '#fff',
+                color: chargeNow ? '#fff' : 'rgba(20,20,15,0.6)',
+              }}
+            >
+              Sim, agora
+            </button>
+            <button
+              onClick={() => setChargeNow(false)}
+              className="flex-1 py-2.5 rounded-xl border text-sm font-semibold cursor-pointer"
+              style={{
+                borderColor: 'rgba(20,20,15,0.1)',
+                background: !chargeNow ? '#14140F' : '#fff',
+                color: !chargeNow ? '#fff' : 'rgba(20,20,15,0.6)',
+              }}
+            >
+              Só nas próximas
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {error && (
         <div className="text-[13px] mb-3.5" style={{ color: 'oklch(0.5 0.15 35)' }}>
@@ -227,8 +255,18 @@ export function AddSubscriptionSheet({ open, onClose }: { open: boolean; onClose
           color: canSubmit ? '#fff' : 'rgba(20,20,15,0.4)',
         }}
       >
-        {isSubmitting ? 'Adicionando…' : 'Adicionar assinatura'}
+        {isSubmitting ? 'Salvando…' : editing ? 'Salvar alterações' : 'Adicionar assinatura'}
       </button>
+
+      {editing && onRequestDelete && (
+        <button
+          onClick={() => onRequestDelete(editing)}
+          className="w-full py-[13px] rounded-2xl border-none text-[14px] font-bold cursor-pointer bg-transparent mt-2.5"
+          style={{ color: 'oklch(0.5 0.15 35)' }}
+        >
+          Excluir assinatura
+        </button>
+      )}
     </Sheet>
   );
 }

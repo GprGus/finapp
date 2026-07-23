@@ -3,7 +3,7 @@ import { and, eq } from 'drizzle-orm';
 import { db } from '../db/client.js';
 import { accounts, entries, subscriptions } from '../db/schema.js';
 import { requireAuth } from '../auth/middleware.js';
-import { createSubscriptionSchema } from '../validation.js';
+import { createSubscriptionSchema, updateSubscriptionSchema } from '../validation.js';
 import { addDays, todayISO } from '../lib/dates.js';
 import { chargeOverdueCycles } from '../jobs/billSubscriptions.js';
 
@@ -66,6 +66,35 @@ subscriptionsRouter.post('/', async (req, res) => {
   createdEntries.push(...caughtUp.entries);
 
   res.status(201).json({ subscription: current, entries: createdEntries });
+});
+
+subscriptionsRouter.patch('/:id', async (req, res) => {
+  const parsed = updateSubscriptionSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: 'Dados inválidos' });
+    return;
+  }
+
+  const account = await db.query.accounts.findFirst({
+    where: and(eq(accounts.id, parsed.data.accountId), eq(accounts.userId, req.userId!)),
+  });
+  if (!account) {
+    res.status(404).json({ error: 'Conta não encontrada' });
+    return;
+  }
+
+  const [subscription] = await db
+    .update(subscriptions)
+    .set(parsed.data)
+    .where(and(eq(subscriptions.id, req.params.id), eq(subscriptions.userId, req.userId!)))
+    .returning();
+
+  if (!subscription) {
+    res.status(404).json({ error: 'Assinatura não encontrada' });
+    return;
+  }
+
+  res.json(subscription);
 });
 
 subscriptionsRouter.delete('/:id', async (req, res) => {
