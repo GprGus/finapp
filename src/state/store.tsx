@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Account, AccountType, Cadence, Debt, Entry, FinanceState, Goal, Subscription, CategoryId } from '../types';
 import { apiFetch } from '../lib/api';
+import { todayISO } from '../lib/format';
 
 const EMPTY_STATE: FinanceState = {
   accounts: [],
@@ -102,8 +103,9 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
     const accountBalance = (accountId: string) => {
       const acc = state.accounts.find((a) => a.id === accountId);
       if (!acc) return 0;
+      const today = todayISO();
       const delta = state.entries
-        .filter((e) => e.accountId === accountId)
+        .filter((e) => e.accountId === accountId && e.date <= today)
         .reduce((sum, e) => sum + e.amount, 0);
       return acc.openingBalance + delta;
     };
