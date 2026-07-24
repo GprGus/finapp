@@ -4,7 +4,7 @@ import { db } from '../db/client.js';
 import { accounts, debts, entries } from '../db/schema.js';
 import { requireAuth } from '../auth/middleware.js';
 import { createDebtSchema, updateDebtSchema } from '../validation.js';
-import { addDays, todayISO } from '../lib/dates.js';
+import { dayOfMonth, nextChargeDateFor, todayISO } from '../lib/dates.js';
 import { chargeOverdueDebtCycles } from '../jobs/billDebts.js';
 
 export const debtsRouter = Router();
@@ -26,9 +26,11 @@ debtsRouter.post('/', async (req, res) => {
     return;
   }
 
+  const billingDay = data.cadence === 'monthly' ? dayOfMonth(data.nextChargeDate) : null;
+
   const [debt] = await db
     .insert(debts)
-    .values({ ...data, userId: req.userId! })
+    .values({ ...data, billingDay, userId: req.userId! })
     .returning();
 
   let current = debt;
@@ -55,7 +57,7 @@ debtsRouter.post('/', async (req, res) => {
       .update(debts)
       .set({
         lastChargeDate: today,
-        nextChargeDate: addDays(today, current.intervalDays),
+        nextChargeDate: nextChargeDateFor(today, current),
         paidInstallments: current.paidInstallments + 1,
       })
       .where(eq(debts.id, current.id))
@@ -87,9 +89,11 @@ debtsRouter.patch('/:id', async (req, res) => {
     return;
   }
 
+  const billingDay = parsed.data.cadence === 'monthly' ? dayOfMonth(parsed.data.nextChargeDate) : null;
+
   const [debt] = await db
     .update(debts)
-    .set(parsed.data)
+    .set({ ...parsed.data, billingDay })
     .where(and(eq(debts.id, req.params.id), eq(debts.userId, req.userId!)))
     .returning();
 

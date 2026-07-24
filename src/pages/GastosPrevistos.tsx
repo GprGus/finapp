@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useFinance } from '../state/store';
-import { fmtBRL, addDays, dateLabel, monthLabel } from '../lib/format';
+import { fmtBRL, nextChargeDateFor, dateLabel, monthLabel } from '../lib/format';
 import { EXPENSE_CATEGORIES, categoryBarColor, getCategory } from '../lib/categories';
 import { EmptyState } from '../components/EmptyState';
 import type { CategoryId, Debt, Subscription } from '../types';
@@ -45,7 +45,7 @@ function projectSubscriptionCharges(sub: Subscription, start: string, end: strin
         confirmed: false,
       });
     }
-    cursor = addDays(cursor, sub.intervalDays);
+    cursor = nextChargeDateFor(cursor, sub);
     guard++;
   }
 
@@ -70,7 +70,7 @@ function projectDebtCharges(debt: Debt, start: string, end: string): ForecastIte
         confirmed: false,
       });
     }
-    cursor = addDays(cursor, debt.intervalDays);
+    cursor = nextChargeDateFor(cursor, debt);
     installment++;
     guard++;
   }

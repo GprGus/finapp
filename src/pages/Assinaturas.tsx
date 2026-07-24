@@ -70,7 +70,7 @@ export function Assinaturas() {
                 </div>
               </div>
               <div
-                className="text-[11.5px] font-bold px-2.5 py-1.5 rounded-lg whitespace-nowrap"
+                className="text-[11.5px] font-bold px-2.5 py-1.5 rounded-lg whitespace-nowrap flex-shrink-0"
                 style={{
                   color: !active ? 'rgba(20,20,15,0.4)' : urgent ? 'oklch(0.5 0.15 35)' : 'rgba(20,20,15,0.55)',
                   background: !active

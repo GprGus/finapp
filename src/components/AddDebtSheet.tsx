@@ -3,7 +3,7 @@ import { Sheet, SheetTitle, Field, inputClass } from './Sheet';
 import { useFinance } from '../state/store';
 import { todayISO } from '../lib/format';
 import { ApiError } from '../lib/api';
-import type { Debt } from '../types';
+import type { Cadence, Debt } from '../types';
 
 const HUES = [0, 15, 350, 335];
 
@@ -24,6 +24,7 @@ export function AddDebtSheet({
   const [totalInstallments, setTotalInstallments] = useState('');
   const [paidInstallments, setPaidInstallments] = useState('0');
   const [nextChargeDate, setNextChargeDate] = useState(todayISO());
+  const [cadence, setCadence] = useState<Cadence>('interval');
   const [intervalDays, setIntervalDays] = useState('30');
   const [accountId, setAccountId] = useState(state.accounts[0]?.id ?? '');
   const [chargeNow, setChargeNow] = useState(false);
@@ -40,6 +41,7 @@ export function AddDebtSheet({
       setTotalInstallments(String(editing.totalInstallments));
       setPaidInstallments(String(editing.paidInstallments));
       setNextChargeDate(editing.nextChargeDate);
+      setCadence(editing.cadence);
       setIntervalDays(String(editing.intervalDays));
       setAccountId(editing.accountId);
     } else {
@@ -48,6 +50,7 @@ export function AddDebtSheet({
       setTotalInstallments('');
       setPaidInstallments('0');
       setNextChargeDate(todayISO());
+      setCadence('interval');
       setIntervalDays('30');
       setAccountId(state.accounts[0]?.id ?? '');
     }
@@ -58,10 +61,12 @@ export function AddDebtSheet({
     parseFloat(installmentAmount) > 0 &&
     parseInt(totalInstallments, 10) > 0 &&
     !!nextChargeDate &&
-    parseInt(intervalDays, 10) > 0 &&
+    (cadence === 'monthly' || parseInt(intervalDays, 10) > 0) &&
     !!accountId &&
     (!editing || parseInt(paidInstallments, 10) <= parseInt(totalInstallments, 10)) &&
     !isSubmitting;
+
+  const billingDayPreview = Number(nextChargeDate.slice(8, 10));
 
   const submit = async () => {
     if (!canSubmit) return;
@@ -73,7 +78,8 @@ export function AddDebtSheet({
         accountId,
         installmentAmount: parseFloat(installmentAmount),
         totalInstallments: parseInt(totalInstallments, 10),
-        intervalDays: parseInt(intervalDays, 10),
+        cadence,
+        intervalDays: parseInt(intervalDays, 10) || 30,
         nextChargeDate,
       };
       if (editing) {
@@ -156,28 +162,56 @@ export function AddDebtSheet({
         </Field>
       )}
 
-      <div className="flex gap-2.5 mb-3.5">
-        <div className="flex-1">
-          <Field label={editing ? 'Próxima cobrança' : 'Primeira cobrança'}>
-            <input
-              className={inputClass}
-              type="date"
-              value={nextChargeDate}
-              onChange={(e) => setNextChargeDate(e.target.value)}
-            />
-          </Field>
+      <Field label={editing ? 'Próxima cobrança' : 'Primeira cobrança'}>
+        <input
+          className={inputClass}
+          type="date"
+          value={nextChargeDate}
+          onChange={(e) => setNextChargeDate(e.target.value)}
+        />
+      </Field>
+
+      <div className="mb-3.5">
+        <div className="text-xs text-ink/50 mb-2">Como calcular a próxima parcela?</div>
+        <div className="flex gap-2 mb-2.5">
+          <button
+            onClick={() => setCadence('interval')}
+            className="flex-1 py-2.5 rounded-xl border text-sm font-semibold cursor-pointer"
+            style={{
+              borderColor: 'rgba(20,20,15,0.1)',
+              background: cadence === 'interval' ? '#14140F' : '#fff',
+              color: cadence === 'interval' ? '#fff' : 'rgba(20,20,15,0.6)',
+            }}
+          >
+            Qtd. de dias
+          </button>
+          <button
+            onClick={() => setCadence('monthly')}
+            className="flex-1 py-2.5 rounded-xl border text-sm font-semibold cursor-pointer"
+            style={{
+              borderColor: 'rgba(20,20,15,0.1)',
+              background: cadence === 'monthly' ? '#14140F' : '#fff',
+              color: cadence === 'monthly' ? '#fff' : 'rgba(20,20,15,0.6)',
+            }}
+          >
+            Dia fixo do mês
+          </button>
         </div>
-        <div className="flex-1">
-          <Field label="Cobra a cada (dias)">
-            <input
-              className={inputClass}
-              type="number"
-              min={1}
-              value={intervalDays}
-              onChange={(e) => setIntervalDays(e.target.value)}
-            />
-          </Field>
-        </div>
+        {cadence === 'interval' ? (
+          <input
+            className={inputClass}
+            type="number"
+            min={1}
+            placeholder="Cobra a cada N dias"
+            value={intervalDays}
+            onChange={(e) => setIntervalDays(e.target.value)}
+          />
+        ) : (
+          <div className="text-[12.5px] text-ink/50 px-1">
+            Cobra todo dia <strong className="text-ink">{billingDayPreview}</strong> de cada mês (ajusta para o
+            último dia em meses mais curtos).
+          </div>
+        )}
       </div>
 
       <div className="mb-4">

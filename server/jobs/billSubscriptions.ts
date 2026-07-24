@@ -1,7 +1,7 @@
 import { eq, lte } from 'drizzle-orm';
 import { db } from '../db/client.js';
 import { entries, subscriptions } from '../db/schema.js';
-import { addDays, todayISO } from '../lib/dates.js';
+import { nextChargeDateFor, todayISO } from '../lib/dates.js';
 
 type SubscriptionRow = typeof subscriptions.$inferSelect;
 type EntryRow = typeof entries.$inferSelect;
@@ -42,7 +42,7 @@ export async function chargeOverdueCycles(
 
     createdEntries.push(entry);
     lastChargeDate = nextChargeDate;
-    nextChargeDate = addDays(nextChargeDate, subscription.intervalDays);
+    nextChargeDate = nextChargeDateFor(nextChargeDate, subscription);
   }
 
   if (createdEntries.length === 0) {

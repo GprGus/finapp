@@ -34,12 +34,14 @@ export const contributeToGoalSchema = z.object({
 });
 
 const isoDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+const cadenceSchema = z.enum(['interval', 'monthly']);
 
 export const createSubscriptionSchema = z
   .object({
     name: z.string().trim().min(1).max(120),
     price: z.number().finite(),
     accountId: z.string().uuid(),
+    cadence: cadenceSchema,
     intervalDays: z.number().int().min(1).max(3650),
     nextChargeDate: isoDateSchema,
     isRecurring: z.boolean(),
@@ -57,6 +59,7 @@ export const updateSubscriptionSchema = z
     name: z.string().trim().min(1).max(120),
     price: z.number().finite(),
     accountId: z.string().uuid(),
+    cadence: cadenceSchema,
     intervalDays: z.number().int().min(1).max(3650),
     nextChargeDate: isoDateSchema,
     isRecurring: z.boolean(),
@@ -73,6 +76,7 @@ export const createDebtSchema = z.object({
   accountId: z.string().uuid(),
   installmentAmount: z.number().finite().positive(),
   totalInstallments: z.number().int().min(1).max(600),
+  cadence: cadenceSchema,
   intervalDays: z.number().int().min(1).max(3650),
   nextChargeDate: isoDateSchema,
   hue: z.number().int().min(0).max(360),
@@ -86,6 +90,7 @@ export const updateDebtSchema = z
     installmentAmount: z.number().finite().positive(),
     totalInstallments: z.number().int().min(1).max(600),
     paidInstallments: z.number().int().min(0),
+    cadence: cadenceSchema,
     intervalDays: z.number().int().min(1).max(3650),
     nextChargeDate: isoDateSchema,
     hue: z.number().int().min(0).max(360),

@@ -1,7 +1,7 @@
 import { and, eq, lte, sql } from 'drizzle-orm';
 import { db } from '../db/client.js';
 import { debts, entries } from '../db/schema.js';
-import { addDays, todayISO } from '../lib/dates.js';
+import { nextChargeDateFor, todayISO } from '../lib/dates.js';
 
 type DebtRow = typeof debts.$inferSelect;
 type EntryRow = typeof entries.$inferSelect;
@@ -42,7 +42,7 @@ export async function chargeOverdueDebtCycles(
 
     createdEntries.push(entry);
     lastChargeDate = nextChargeDate;
-    nextChargeDate = addDays(nextChargeDate, debt.intervalDays);
+    nextChargeDate = nextChargeDateFor(nextChargeDate, debt);
     paidInstallments++;
   }
 

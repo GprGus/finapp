@@ -124,11 +124,13 @@ export function GoalActionSheet({
 
   return (
     <Sheet open={!!goal} onClose={onClose}>
-      <div className="flex items-start justify-between">
-        <SheetTitle>{goal.name}</SheetTitle>
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <SheetTitle>{goal.name}</SheetTitle>
+        </div>
         <button
           onClick={() => setIsEditing(true)}
-          className="border-none bg-transparent text-[13px] font-semibold cursor-pointer text-accent"
+          className="border-none bg-transparent text-[13px] font-semibold cursor-pointer text-accent flex-shrink-0"
         >
           Editar
         </button>

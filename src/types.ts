@@ -24,12 +24,16 @@ export interface Goal {
   createdAt: string;
 }
 
+export type Cadence = 'interval' | 'monthly';
+
 export interface Subscription {
   id: string;
   accountId: string;
   name: string;
   price: number;
+  cadence: Cadence;
   intervalDays: number;
+  billingDay: number | null;
   nextChargeDate: string;
   lastChargeDate: string | null;
   isRecurring: boolean;
@@ -45,7 +49,9 @@ export interface Debt {
   installmentAmount: number;
   totalInstallments: number;
   paidInstallments: number;
+  cadence: Cadence;
   intervalDays: number;
+  billingDay: number | null;
   nextChargeDate: string;
   lastChargeDate: string | null;
   hue: number;

@@ -25,7 +25,7 @@ export function Lancamentos({ onSelectEntry }: { onSelectEntry: (entry: Entry) =
   const accountName = (id: string) => state.accounts.find((a) => a.id === id)?.name ?? '—';
 
   return (
-    <div className="px-5 pt-5 pb-24">
+    <div className="px-5 pt-5 pb-[calc(env(safe-area-inset-bottom,0px)+110px)]">
       <div className="text-[26px] font-bold text-ink tracking-tight mb-1">Lançamentos</div>
       <div className="text-[13.5px] text-ink/50 mb-[22px]">
         Adicione ou edite lançamentos de qualquer data

@@ -42,7 +42,9 @@ export const subscriptions = pgTable(
     accountId: uuid('account_id').notNull().references(() => accounts.id, { onDelete: 'cascade' }),
     name: text('name').notNull(),
     price: numeric('price', { mode: 'number', precision: 14, scale: 2 }).notNull(),
+    cadence: text('cadence').notNull().default('interval'), // 'interval' | 'monthly'
     intervalDays: integer('interval_days').notNull().default(30),
+    billingDay: integer('billing_day'),
     nextChargeDate: date('renew_date').notNull(),
     lastChargeDate: date('last_charge_date'),
     isRecurring: boolean('is_recurring').notNull().default(true),
@@ -66,7 +68,9 @@ export const debts = pgTable(
     installmentAmount: numeric('installment_amount', { mode: 'number', precision: 14, scale: 2 }).notNull(),
     totalInstallments: integer('total_installments').notNull(),
     paidInstallments: integer('paid_installments').notNull().default(0),
+    cadence: text('cadence').notNull().default('interval'), // 'interval' | 'monthly'
     intervalDays: integer('interval_days').notNull().default(30),
+    billingDay: integer('billing_day'),
     nextChargeDate: date('next_charge_date').notNull(),
     lastChargeDate: date('last_charge_date'),
     hue: integer('hue').notNull(),

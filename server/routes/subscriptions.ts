@@ -4,7 +4,7 @@ import { db } from '../db/client.js';
 import { accounts, entries, subscriptions } from '../db/schema.js';
 import { requireAuth } from '../auth/middleware.js';
 import { createSubscriptionSchema, updateSubscriptionSchema } from '../validation.js';
-import { addDays, todayISO } from '../lib/dates.js';
+import { dayOfMonth, nextChargeDateFor, todayISO } from '../lib/dates.js';
 import { chargeOverdueCycles } from '../jobs/billSubscriptions.js';
 
 export const subscriptionsRouter = Router();
@@ -26,9 +26,11 @@ subscriptionsRouter.post('/', async (req, res) => {
     return;
   }
 
+  const billingDay = data.cadence === 'monthly' ? dayOfMonth(data.nextChargeDate) : null;
+
   const [subscription] = await db
     .insert(subscriptions)
-    .values({ ...data, userId: req.userId! })
+    .values({ ...data, billingDay, userId: req.userId! })
     .returning();
 
   let current = subscription;
@@ -53,7 +55,7 @@ subscriptionsRouter.post('/', async (req, res) => {
 
     const [updated] = await db
       .update(subscriptions)
-      .set({ lastChargeDate: today, nextChargeDate: addDays(today, current.intervalDays) })
+      .set({ lastChargeDate: today, nextChargeDate: nextChargeDateFor(today, current) })
       .where(eq(subscriptions.id, current.id))
       .returning();
     current = updated;
@@ -83,9 +85,11 @@ subscriptionsRouter.patch('/:id', async (req, res) => {
     return;
   }
 
+  const billingDay = parsed.data.cadence === 'monthly' ? dayOfMonth(parsed.data.nextChargeDate) : null;
+
   const [subscription] = await db
     .update(subscriptions)
-    .set(parsed.data)
+    .set({ ...parsed.data, billingDay })
     .where(and(eq(subscriptions.id, req.params.id), eq(subscriptions.userId, req.userId!)))
     .returning();
 

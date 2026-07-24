@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import type { Account, AccountType, Debt, Entry, FinanceState, Goal, Subscription, CategoryId } from '../types';
+import type { Account, AccountType, Cadence, Debt, Entry, FinanceState, Goal, Subscription, CategoryId } from '../types';
 import { apiFetch } from '../lib/api';
 
 const EMPTY_STATE: FinanceState = {
@@ -25,6 +25,7 @@ interface FinanceContextValue {
     name: string;
     price: number;
     accountId: string;
+    cadence: Cadence;
     intervalDays: number;
     nextChargeDate: string;
     isRecurring: boolean;
@@ -38,6 +39,7 @@ interface FinanceContextValue {
       name: string;
       price: number;
       accountId: string;
+      cadence: Cadence;
       intervalDays: number;
       nextChargeDate: string;
       isRecurring: boolean;
@@ -51,6 +53,7 @@ interface FinanceContextValue {
     accountId: string;
     installmentAmount: number;
     totalInstallments: number;
+    cadence: Cadence;
     intervalDays: number;
     nextChargeDate: string;
     hue: number;
@@ -64,6 +67,7 @@ interface FinanceContextValue {
       installmentAmount: number;
       totalInstallments: number;
       paidInstallments: number;
+      cadence: Cadence;
       intervalDays: number;
       nextChargeDate: string;
       hue: number;
