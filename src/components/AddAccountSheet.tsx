@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Sheet, SheetTitle, Field, inputClass } from './Sheet';
+import { Sheet, SheetTitle, Field, inputClass, primaryButtonStyle, chipStyle, dangerTextButtonStyle } from './Sheet';
 import { useFinance } from '../state/store';
 import { ApiError } from '../lib/api';
 import type { Account, AccountType } from '../types';
@@ -81,11 +81,7 @@ export function AddAccountSheet({
                 key={t}
                 onClick={() => setType(t)}
                 className="px-3 py-2 rounded-[10px] text-[13px] font-semibold border cursor-pointer"
-                style={{
-                  background: sel ? 'rgba(20,20,15,0.9)' : '#fff',
-                  color: sel ? '#fff' : 'rgba(20,20,15,0.6)',
-                  borderColor: sel ? '#14140F' : 'rgba(20,20,15,0.12)',
-                }}
+                style={chipStyle(sel)}
               >
                 {t}
               </button>
@@ -105,7 +101,7 @@ export function AddAccountSheet({
       </Field>
 
       {error && (
-        <div className="text-[13px] mb-3.5" style={{ color: 'oklch(0.5 0.15 35)' }}>
+        <div className="text-[13px] mb-3.5" style={{ color: 'var(--warning-color)' }}>
           {error}
         </div>
       )}
@@ -113,11 +109,8 @@ export function AddAccountSheet({
       <button
         disabled={!canSubmit}
         onClick={submit}
-        className="w-full py-[15px] rounded-2xl border-none text-[15.5px] font-bold cursor-pointer disabled:cursor-not-allowed"
-        style={{
-          background: canSubmit ? '#14140F' : 'rgba(20,20,15,0.15)',
-          color: canSubmit ? '#fff' : 'rgba(20,20,15,0.4)',
-        }}
+        className="w-full py-[15px] rounded-2xl text-[15.5px] font-bold cursor-pointer disabled:cursor-not-allowed"
+        style={primaryButtonStyle(canSubmit)}
       >
         {isSubmitting ? 'Salvando…' : editing ? 'Salvar alterações' : 'Adicionar conta'}
       </button>
@@ -126,7 +119,7 @@ export function AddAccountSheet({
         <button
           onClick={() => onRequestDelete(editing)}
           className="w-full py-[13px] rounded-2xl border-none text-[14px] font-bold cursor-pointer bg-transparent mt-2.5"
-          style={{ color: 'oklch(0.5 0.15 35)' }}
+          style={dangerTextButtonStyle}
         >
           Excluir conta
         </button>

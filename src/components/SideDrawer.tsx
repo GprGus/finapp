@@ -70,25 +70,32 @@ export function SideDrawer({
   tab,
   onChange,
   onClose,
+  onLogout,
 }: {
   open: boolean;
   tab: Tab;
   onChange: (t: Tab) => void;
   onClose: () => void;
+  onLogout: () => void;
 }) {
   if (!open) return null;
 
   return (
     <>
-      <div className="fixed inset-0 bg-ink/40 z-90 animate-fade-in" onClick={onClose} />
       <div
-        className="fixed left-0 top-0 bottom-0 w-[250px] z-91 bg-surface shadow-[20px_0_50px_rgba(0,0,0,0.15)] px-3 pt-[calc(env(safe-area-inset-top,0px)+22px)] pb-[calc(env(safe-area-inset-bottom,0px)+20px)] overflow-auto box-border animate-slide-in-left"
+        className="fixed inset-0 z-90 animate-fade-in"
+        style={{ background: 'var(--backdrop-color)' }}
+        onClick={onClose}
+      />
+      <div
+        className="fixed left-0 top-0 bottom-0 w-[250px] z-91 bg-surface shadow-[20px_0_50px_rgba(0,0,0,0.15)] border-r px-3 pt-[calc(env(safe-area-inset-top,0px)+22px)] pb-[calc(env(safe-area-inset-bottom,0px)+20px)] overflow-auto box-border animate-slide-in-left"
+        style={{ borderColor: 'var(--overlay-border-color)' }}
       >
         <div className="text-[11px] font-bold text-ink/40 uppercase tracking-wide px-3 mb-3">Navegação</div>
         <div className="flex flex-col gap-1">
           {TABS.map((t) => {
             const active = tab === t.id;
-            const color = active ? '#14140F' : 'rgba(20,20,15,0.45)';
+            const color = active ? 'var(--drawer-active-fg)' : 'rgba(var(--ink-rgb), 0.45)';
             return (
               <button
                 key={t.id}
@@ -97,7 +104,7 @@ export function SideDrawer({
                   onClose();
                 }}
                 className="flex items-center gap-3 px-3 py-3 rounded-xl border-none cursor-pointer text-left"
-                style={{ background: active ? 'rgba(20,20,15,0.06)' : 'transparent' }}
+                style={{ background: active ? 'var(--drawer-active-bg)' : 'transparent' }}
               >
                 <Icon tab={t.id} color={color} />
                 <div className="text-[14.5px] font-semibold" style={{ color }}>
@@ -107,6 +114,16 @@ export function SideDrawer({
             );
           })}
         </div>
+        <div className="h-px my-4 mx-2 bg-ink/8" />
+        <button
+          onClick={() => {
+            onClose();
+            onLogout();
+          }}
+          className="flex items-center gap-3 px-3 py-3 rounded-xl border-none cursor-pointer text-left bg-transparent w-full text-[14.5px] font-semibold text-ink/45"
+        >
+          Sair
+        </button>
       </div>
     </>
   );

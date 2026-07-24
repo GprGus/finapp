@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Sheet, SheetTitle, Field, inputClass } from './Sheet';
+import { Sheet, SheetTitle, Field, inputClass, primaryButtonStyle } from './Sheet';
 import { useFinance } from '../state/store';
 import { fmtBRL } from '../lib/format';
 import { ApiError } from '../lib/api';
@@ -70,7 +70,7 @@ export function AbateDebtSheet({ debt, onClose }: { debt: Debt | null; onClose: 
       </Field>
 
       {error && (
-        <div className="text-[13px] mb-3.5" style={{ color: 'oklch(0.5 0.15 35)' }}>
+        <div className="text-[13px] mb-3.5" style={{ color: 'var(--warning-color)' }}>
           {error}
         </div>
       )}
@@ -78,11 +78,8 @@ export function AbateDebtSheet({ debt, onClose }: { debt: Debt | null; onClose: 
       <button
         disabled={!canSubmit}
         onClick={submit}
-        className="w-full py-[15px] rounded-2xl border-none text-[15.5px] font-bold cursor-pointer disabled:cursor-not-allowed"
-        style={{
-          background: canSubmit ? '#14140F' : 'rgba(20,20,15,0.15)',
-          color: canSubmit ? '#fff' : 'rgba(20,20,15,0.4)',
-        }}
+        className="w-full py-[15px] rounded-2xl text-[15.5px] font-bold cursor-pointer disabled:cursor-not-allowed"
+        style={primaryButtonStyle(canSubmit)}
       >
         {isSubmitting ? 'Lançando…' : 'Lançar abatimento'}
       </button>

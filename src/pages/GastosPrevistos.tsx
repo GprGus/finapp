@@ -100,7 +100,8 @@ function MonthRow({
     <div className="mb-3">
       <button
         onClick={onToggle}
-        className="w-full text-left flex items-center justify-between bg-white border border-ink/8 rounded-[16px] px-4 py-3.5 cursor-pointer"
+        className="w-full text-left flex items-center justify-between border border-ink/8 rounded-[16px] px-4 py-3.5 cursor-pointer"
+        style={{ background: 'var(--color-card)' }}
       >
         <div className="min-w-0">
           <div className="text-[14.5px] font-semibold text-ink capitalize truncate">{range.label}</div>
@@ -118,7 +119,7 @@ function MonthRow({
           >
             <path
               d="M4 6l4 4 4-4"
-              stroke="rgba(20,20,15,0.4)"
+              stroke="rgba(var(--ink-rgb), 0.4)"
               strokeWidth="1.6"
               fill="none"
               strokeLinecap="round"
@@ -158,7 +159,7 @@ function MonthRow({
                 </div>
               )}
 
-              <div className="bg-white border border-ink/8 rounded-[18px] overflow-hidden">
+              <div className="border border-ink/8 rounded-[18px] overflow-hidden" style={{ background: 'var(--color-card)' }}>
                 {items.map((item, i) => {
                   const cat = getCategory(item.categoryId);
                   return (
@@ -174,8 +175,8 @@ function MonthRow({
                             className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-md flex-shrink-0"
                             style={
                               item.confirmed
-                                ? { color: 'oklch(0.5 0.15 250)', background: 'oklch(0.5 0.15 250 / 0.12)' }
-                                : { color: 'rgba(20,20,15,0.55)', background: 'rgba(20,20,15,0.08)' }
+                                ? { color: 'var(--badge-future-fg)', background: 'var(--badge-future-bg)' }
+                                : { color: 'rgba(var(--ink-rgb), 0.55)', background: 'rgba(var(--ink-rgb), 0.08)' }
                             }
                           >
                             {item.confirmed ? 'LANÇADO' : 'PREVISTO'}

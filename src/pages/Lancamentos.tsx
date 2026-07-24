@@ -43,7 +43,7 @@ export function Lancamentos({ onSelectEntry }: { onSelectEntry: (entry: Entry) =
           <div className="text-xs font-bold text-ink/45 uppercase tracking-wide mb-2">
             {grp.label}
           </div>
-          <div className="bg-white border border-ink/8 rounded-[18px] overflow-hidden">
+          <div className="border border-ink/8 rounded-[18px] overflow-hidden" style={{ background: 'var(--color-card)' }}>
             {grp.items.map((item, i) => {
               const cat = getCategory(item.categoryId);
               return (
@@ -64,7 +64,7 @@ export function Lancamentos({ onSelectEntry }: { onSelectEntry: (entry: Entry) =
                       {item.retro && (
                         <div
                           className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-md flex-shrink-0"
-                          style={{ color: 'oklch(0.5 0.15 35)', background: 'oklch(0.5 0.15 35 / 0.12)' }}
+                          style={{ color: 'var(--badge-retro-fg)', background: 'var(--badge-retro-bg)' }}
                         >
                           RETROATIVO
                         </div>
@@ -72,7 +72,7 @@ export function Lancamentos({ onSelectEntry }: { onSelectEntry: (entry: Entry) =
                       {item.date > todayISO() && (
                         <div
                           className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-md flex-shrink-0"
-                          style={{ color: 'oklch(0.5 0.15 250)', background: 'oklch(0.5 0.15 250 / 0.12)' }}
+                          style={{ color: 'var(--badge-future-fg)', background: 'var(--badge-future-bg)' }}
                         >
                           FUTURO
                         </div>
@@ -84,7 +84,7 @@ export function Lancamentos({ onSelectEntry }: { onSelectEntry: (entry: Entry) =
                   </div>
                   <div
                     className="text-[14.5px] font-semibold tabular-nums"
-                    style={{ color: item.amount >= 0 ? 'oklch(0.42 0.13 152)' : '#14140F' }}
+                    style={{ color: item.amount >= 0 ? 'var(--positive-color)' : 'var(--color-ink)' }}
                   >
                     {fmtSigned(item.amount)}
                   </div>

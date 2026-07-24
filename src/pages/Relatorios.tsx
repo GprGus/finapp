@@ -3,6 +3,7 @@ import { useFinance } from '../state/store';
 import { fmtBRL, fmtSigned, monthLabel } from '../lib/format';
 import { EXPENSE_CATEGORIES, categoryBarColor } from '../lib/categories';
 import { EmptyState } from '../components/EmptyState';
+import { chipStyle } from '../components/Sheet';
 
 type ReportView = 'despesas' | 'receitas' | 'misto';
 
@@ -42,7 +43,7 @@ export function Relatorios() {
 
     const mixedItems = [
       ...reportCats.map((c) => ({ name: c.name, val: c.val, type: 'despesa' as const, color: categoryBarColor(c.hue) })),
-      ...incomeReport.map((i) => ({ name: i.name, val: i.val, type: 'receita' as const, color: 'oklch(0.42 0.13 152)' })),
+      ...incomeReport.map((i) => ({ name: i.name, val: i.val, type: 'receita' as const, color: 'var(--positive-color)' })),
     ]
       .sort((a, b) => b.val - a.val)
       .slice(0, 6);
@@ -65,18 +66,12 @@ export function Relatorios() {
       <div className="flex gap-1.5 bg-ink/6 rounded-[14px] p-1 mb-5">
         {TABS.map((t) => {
           const active = view === t.id;
-          const bg =
-            t.id === 'receitas' && active
-              ? 'oklch(0.42 0.13 152)'
-              : active
-                ? '#14140F'
-                : 'transparent';
           return (
             <button
               key={t.id}
               onClick={() => setView(t.id)}
               className="flex-1 py-2.5 px-1.5 border-none rounded-[11px] text-[12.5px] font-bold cursor-pointer"
-              style={{ background: bg, color: active ? '#fff' : 'rgba(20,20,15,0.55)' }}
+              style={chipStyle(active, undefined, t.id === 'receitas')}
             >
               {t.label}
             </button>
@@ -93,8 +88,13 @@ export function Relatorios() {
 
       {view === 'despesas' && monthEntries.length > 0 && (
         <>
-          <div className="bg-ink rounded-[24px] px-5 py-[22px] mb-[22px]">
-            <div className="text-[12.5px] text-white/55 mb-1.5">Total gasto no mês</div>
+          <div
+            className="rounded-[24px] px-5 py-[22px] mb-[22px] border"
+            style={{ background: 'var(--hero-card-bg)', borderColor: 'var(--hero-card-border)' }}
+          >
+            <div className="text-[12.5px] mb-1.5" style={{ color: 'var(--hero-label-color)' }}>
+              Total gasto no mês
+            </div>
             <div className="text-[30px] font-bold text-white tracking-tight tabular-nums">
               {fmtBRL(data.totalSpent)}
             </div>
@@ -127,8 +127,13 @@ export function Relatorios() {
 
       {view === 'receitas' && monthEntries.length > 0 && (
         <>
-          <div className="rounded-[24px] px-5 py-[22px] mb-[22px]" style={{ background: 'oklch(0.42 0.13 152)' }}>
-            <div className="text-[12.5px] text-white/70 mb-1.5">Total recebido no mês</div>
+          <div
+            className="rounded-[24px] px-5 py-[22px] mb-[22px] border"
+            style={{ background: 'var(--income-hero-bg)', borderColor: 'var(--income-hero-border)' }}
+          >
+            <div className="text-[12.5px] mb-1.5" style={{ color: 'var(--income-hero-label)' }}>
+              Total recebido no mês
+            </div>
             <div className="text-[30px] font-bold text-white tracking-tight tabular-nums">
               {fmtBRL(data.totalIncome)}
             </div>
@@ -149,7 +154,7 @@ export function Relatorios() {
                   <div className="h-2 rounded-full bg-ink/8 overflow-hidden">
                     <div
                       className="h-full rounded-full"
-                      style={{ width: `${inc.pct}%`, background: 'oklch(0.42 0.13 152)' }}
+                      style={{ width: `${inc.pct}%`, background: 'var(--positive-color)' }}
                     />
                   </div>
                 </div>
@@ -162,19 +167,32 @@ export function Relatorios() {
       {view === 'misto' && monthEntries.length > 0 && (
         <>
           <div className="flex gap-2 mb-[22px]">
-            <div className="flex-1 min-w-0 rounded-[18px] px-2.5 py-3.5" style={{ background: 'oklch(0.42 0.13 152)' }}>
-              <div className="text-[11px] text-white/70 mb-1">Receitas</div>
+            <div
+              className="flex-1 min-w-0 rounded-[18px] px-2.5 py-3.5 border"
+              style={{ background: 'var(--income-box-bg)', borderColor: 'var(--income-box-border)' }}
+            >
+              <div className="text-[11px] mb-1" style={{ color: 'var(--income-box-label)' }}>
+                Receitas
+              </div>
               <div className="text-[15px] font-bold text-white tabular-nums truncate">{fmtBRL(data.totalIncome)}</div>
             </div>
-            <div className="flex-1 min-w-0 bg-ink rounded-[18px] px-2.5 py-3.5">
-              <div className="text-[11px] text-white/55 mb-1">Despesas</div>
+            <div
+              className="flex-1 min-w-0 rounded-[18px] px-2.5 py-3.5 border"
+              style={{ background: 'var(--expense-box-bg)', borderColor: 'var(--expense-box-border)' }}
+            >
+              <div className="text-[11px] mb-1" style={{ color: 'var(--expense-box-label)' }}>
+                Despesas
+              </div>
               <div className="text-[15px] font-bold text-white tabular-nums truncate">{fmtBRL(data.totalSpent)}</div>
             </div>
-            <div className="flex-1 min-w-0 bg-white border border-ink/10 rounded-[18px] px-2.5 py-3.5">
+            <div
+              className="flex-1 min-w-0 border border-ink/10 rounded-[18px] px-2.5 py-3.5"
+              style={{ background: 'var(--color-card)' }}
+            >
               <div className="text-[11px] text-ink/50 mb-1">Saldo</div>
               <div
                 className="text-[15px] font-bold tabular-nums truncate"
-                style={{ color: data.saldo >= 0 ? 'oklch(0.42 0.13 152)' : 'oklch(0.5 0.15 35)' }}
+                style={{ color: data.saldo >= 0 ? 'var(--positive-color)' : 'var(--warning-color)' }}
               >
                 {fmtSigned(data.saldo)}
               </div>
@@ -191,7 +209,7 @@ export function Relatorios() {
                     <div className="text-[13.5px] font-semibold text-ink">{m.name}</div>
                     <div
                       className="text-[13px] font-semibold tabular-nums"
-                      style={{ color: m.type === 'receita' ? 'oklch(0.42 0.13 152)' : '#14140F' }}
+                      style={{ color: m.type === 'receita' ? 'var(--positive-color)' : 'var(--color-ink)' }}
                     >
                       {(m.type === 'receita' ? '+ ' : '- ') + fmtBRL(m.val)}
                     </div>

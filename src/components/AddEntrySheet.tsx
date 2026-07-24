@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Sheet, SheetTitle, Field, inputClass } from './Sheet';
+import { Sheet, SheetTitle, Field, inputClass, primaryButtonStyle, chipStyle, dangerTextButtonStyle } from './Sheet';
 import { useFinance } from '../state/store';
-import { EXPENSE_CATEGORIES, categoryBarColor } from '../lib/categories';
+import { EXPENSE_CATEGORIES } from '../lib/categories';
 import { todayISO } from '../lib/format';
 import { ApiError } from '../lib/api';
 import type { CategoryId, Entry } from '../types';
@@ -98,22 +98,14 @@ export function AddEntrySheet({
         <button
           onClick={() => setType('despesa')}
           className="flex-1 py-2.5 rounded-xl border text-sm font-semibold cursor-pointer"
-          style={{
-            borderColor: 'rgba(20,20,15,0.1)',
-            background: isDespesa ? '#14140F' : '#fff',
-            color: isDespesa ? '#fff' : 'rgba(20,20,15,0.6)',
-          }}
+          style={chipStyle(isDespesa)}
         >
           Despesa
         </button>
         <button
           onClick={() => setType('receita')}
           className="flex-1 py-2.5 rounded-xl border text-sm font-semibold cursor-pointer"
-          style={{
-            borderColor: 'rgba(20,20,15,0.1)',
-            background: !isDespesa ? 'oklch(0.42 0.13 152)' : '#fff',
-            color: !isDespesa ? '#fff' : 'rgba(20,20,15,0.6)',
-          }}
+          style={chipStyle(!isDespesa, undefined, true)}
         >
           Receita
         </button>
@@ -125,7 +117,7 @@ export function AddEntrySheet({
           {isRetro && (
             <span
               className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-md"
-              style={{ color: 'oklch(0.5 0.15 35)', background: 'oklch(0.5 0.15 35 / 0.12)' }}
+              style={{ color: 'var(--badge-retro-fg)', background: 'var(--badge-retro-bg)' }}
             >
               LANÇAMENTO RETROATIVO
             </span>
@@ -133,7 +125,7 @@ export function AddEntrySheet({
           {isFuture && (
             <span
               className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-md"
-              style={{ color: 'oklch(0.5 0.15 250)', background: 'oklch(0.5 0.15 250 / 0.12)' }}
+              style={{ color: 'var(--badge-future-fg)', background: 'var(--badge-future-bg)' }}
             >
               LANÇAMENTO FUTURO
             </span>
@@ -172,17 +164,12 @@ export function AddEntrySheet({
           <div className="flex flex-wrap gap-2">
             {EXPENSE_CATEGORIES.map((c) => {
               const sel = category === c.id;
-              const bar = categoryBarColor(c.hue);
               return (
                 <button
                   key={c.id}
                   onClick={() => setCategory(c.id)}
                   className="px-3 py-2 rounded-[10px] text-[13px] font-semibold border cursor-pointer"
-                  style={{
-                    borderColor: sel ? bar : 'rgba(20,20,15,0.12)',
-                    background: sel ? `oklch(0.5 0.11 ${c.hue} / 0.15)` : '#fff',
-                    color: sel ? `oklch(0.4 0.11 ${c.hue})` : 'rgba(20,20,15,0.6)',
-                  }}
+                  style={chipStyle(sel, c.hue)}
                 >
                   {c.name}
                 </button>
@@ -202,11 +189,7 @@ export function AddEntrySheet({
                 key={a.id}
                 onClick={() => setAccountId(a.id)}
                 className="px-3 py-2 rounded-[10px] text-[13px] font-semibold border cursor-pointer"
-                style={{
-                  background: sel ? 'rgba(20,20,15,0.9)' : '#fff',
-                  color: sel ? '#fff' : 'rgba(20,20,15,0.6)',
-                  borderColor: sel ? '#14140F' : 'rgba(20,20,15,0.12)',
-                }}
+                style={chipStyle(sel)}
               >
                 {a.name}
               </button>
@@ -216,7 +199,7 @@ export function AddEntrySheet({
       </div>
 
       {error && (
-        <div className="text-[13px] mb-3.5" style={{ color: 'oklch(0.5 0.15 35)' }}>
+        <div className="text-[13px] mb-3.5" style={{ color: 'var(--warning-color)' }}>
           {error}
         </div>
       )}
@@ -224,11 +207,8 @@ export function AddEntrySheet({
       <button
         disabled={!canSubmit}
         onClick={submit}
-        className="w-full py-[15px] rounded-2xl border-none text-[15.5px] font-bold cursor-pointer disabled:cursor-not-allowed"
-        style={{
-          background: canSubmit ? '#14140F' : 'rgba(20,20,15,0.15)',
-          color: canSubmit ? '#fff' : 'rgba(20,20,15,0.4)',
-        }}
+        className="w-full py-[15px] rounded-2xl text-[15.5px] font-bold cursor-pointer disabled:cursor-not-allowed"
+        style={primaryButtonStyle(canSubmit)}
       >
         {isSubmitting ? 'Salvando…' : editing ? 'Salvar alterações' : 'Adicionar lançamento'}
       </button>
@@ -237,7 +217,7 @@ export function AddEntrySheet({
         <button
           onClick={() => onRequestDelete(editing)}
           className="w-full py-[13px] rounded-2xl border-none text-[14px] font-bold cursor-pointer bg-transparent mt-2.5"
-          style={{ color: 'oklch(0.5 0.15 35)' }}
+          style={dangerTextButtonStyle}
         >
           Excluir lançamento
         </button>

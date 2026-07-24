@@ -10,6 +10,177 @@
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
 }
 
+/*
+ * Theme tokens (light defaults here, dark overrides in :root[data-theme="dark"] below).
+ * --color-app/--color-surface/--color-ink/--color-accent/--color-accent-light/--color-warning
+ * are Tailwind @theme colors above — overriding the same custom property name here still
+ * reaches every `bg-surface`, `text-ink/50`, `border-ink/8`, etc. class in the app, since
+ * Tailwind v4's opacity-modifier utilities read the variable at paint time via color-mix().
+ * Everything else here is a plain CSS var referenced directly from inline styles/`var(...)`.
+ */
+:root {
+  --ink-rgb: 20, 20, 15;
+  --color-card: #ffffff;
+  --color-input-bg: #ffffff;
+  --overlay-border-color: transparent;
+  --header-blur-bg: rgba(250, 250, 248, 0.86);
+  --backdrop-color: rgba(20, 20, 15, 0.4);
+  --sheet-backdrop-color: rgba(20, 20, 15, 0.4);
+
+  --warning-color: oklch(0.5 0.15 35);
+  --warning-bg-mid: oklch(0.5 0.15 35 / 0.12);
+
+  /* category dot / bar / avatar-solid hue formulas: oklch(var(--hue-x-l) var(--hue-x-c) <hue>) */
+  --hue-dot-l: 0.6;
+  --hue-dot-c: 0.08;
+  --hue-bar-l: 0.5;
+  --hue-bar-c: 0.11;
+
+  /* selectable "chip" pills (category/account/toggle pickers) */
+  --chip-bg: #ffffff;
+  --chip-fg: rgba(20, 20, 15, 0.6);
+  --chip-border: rgba(20, 20, 15, 0.12);
+  --chip-sel-bg: rgba(20, 20, 15, 0.9);
+  --chip-sel-fg: #ffffff;
+  --chip-sel-border: #14140F;
+  --chip-sel-hue-l: 0.5;
+  --chip-sel-hue-c: 0.11;
+  --chip-sel-hue-a: 0.15;
+  --chip-sel-hue-fg-l: 0.4;
+  --chip-sel-hue-fg-c: 0.11;
+  --chip-sel-income-bg: oklch(0.42 0.13 152);
+  --chip-sel-income-fg: #ffffff;
+  --chip-sel-income-border: oklch(0.42 0.13 152);
+
+  /* primary (outlined/filled) submit buttons */
+  --btn-primary-bg: #14140F;
+  --btn-primary-fg: #ffffff;
+  --btn-primary-border: transparent;
+  --btn-primary-bg-disabled: rgba(20, 20, 15, 0.15);
+  --btn-primary-fg-disabled: rgba(20, 20, 15, 0.4);
+
+  /* filled danger button (ConfirmDeleteSheet) */
+  --btn-danger-bg: oklch(0.5 0.15 35 / 0.12);
+  --btn-danger-fg: oklch(0.5 0.15 35);
+  --btn-danger-border: transparent;
+
+  --fab-shadow: 0 10px 24px rgba(20, 20, 15, 0.25);
+
+  --drawer-active-bg: rgba(20, 20, 15, 0.06);
+  --drawer-active-fg: #14140F;
+
+  --badge-retro-fg: oklch(0.5 0.15 35);
+  --badge-retro-bg: oklch(0.5 0.15 35 / 0.12);
+  --badge-future-fg: oklch(0.5 0.15 250);
+  --badge-future-bg: oklch(0.5 0.15 250 / 0.12);
+
+  --positive-color: oklch(0.42 0.13 152);
+
+  --hero-card-bg: #14140F;
+  --hero-card-border: transparent;
+  --hero-label-color: rgba(255, 255, 255, 0.55);
+  --profile-avatar-bg: #14140F;
+  --profile-avatar-border: transparent;
+  --profile-avatar-fg: #ffffff;
+
+  --income-hero-bg: oklch(0.42 0.13 152);
+  --income-hero-border: transparent;
+  --income-hero-label: rgba(255, 255, 255, 0.7);
+  --income-box-bg: oklch(0.42 0.13 152);
+  --income-box-border: transparent;
+  --income-box-label: rgba(255, 255, 255, 0.7);
+  --expense-box-bg: #14140F;
+  --expense-box-border: transparent;
+  --expense-box-label: rgba(255, 255, 255, 0.55);
+
+  --fab-bg: var(--color-accent);
+  --fab-border: transparent;
+  --fab-fg: #ffffff;
+}
+
+:root[data-theme="dark"] {
+  --color-app: #0f1019;
+  --color-surface: #1e2030;
+  --color-ink: #e9e9ed;
+  --color-accent: #9184d9;
+  --color-accent-light: #b5abfc;
+  --color-warning: oklch(0.72 0.12 35);
+
+  --ink-rgb: 233, 233, 237;
+  --color-card: #232532;
+  --color-input-bg: #161826;
+  --overlay-border-color: #3f424d;
+  --header-blur-bg: rgba(22, 24, 38, 0.84);
+  --backdrop-color: rgba(8, 9, 16, 0.6);
+  --sheet-backdrop-color: rgba(8, 9, 16, 0.65);
+
+  --warning-color: oklch(0.72 0.12 35);
+  --warning-bg-mid: oklch(0.72 0.12 35 / 0.12);
+
+  --hue-dot-l: 0.72;
+  --hue-dot-c: 0.09;
+  --hue-bar-l: 0.62;
+  --hue-bar-c: 0.11;
+
+  --chip-bg: transparent;
+  --chip-fg: rgba(233, 233, 237, 0.55);
+  --chip-border: #3f424d;
+  --chip-sel-bg: #423a6a;
+  --chip-sel-fg: #e7e5fe;
+  --chip-sel-border: #796cbf;
+  --chip-sel-hue-l: 0.3;
+  --chip-sel-hue-c: 0.05;
+  --chip-sel-hue-a: 1;
+  --chip-sel-hue-fg-l: 0.84;
+  --chip-sel-hue-fg-c: 0.07;
+  --chip-sel-income-bg: oklch(0.32 0.06 152);
+  --chip-sel-income-fg: oklch(0.86 0.08 152);
+  --chip-sel-income-border: oklch(0.5 0.08 152);
+
+  --btn-primary-bg: rgba(145, 132, 217, 0.08);
+  --btn-primary-fg: #d2cefd;
+  --btn-primary-border: #9184d9;
+  --btn-primary-bg-disabled: rgba(233, 233, 237, 0.05);
+  --btn-primary-fg-disabled: rgba(233, 233, 237, 0.25);
+
+  --btn-danger-bg: oklch(0.72 0.12 35 / 0.1);
+  --btn-danger-fg: oklch(0.78 0.11 35);
+  --btn-danger-border: oklch(0.5 0.12 35);
+
+  --fab-shadow: 0 10px 24px rgba(0, 0, 0, 0.5), 0 0 24px rgba(145, 132, 217, 0.25);
+
+  --drawer-active-bg: rgba(145, 132, 217, 0.14);
+  --drawer-active-fg: #d2cefd;
+
+  --badge-retro-fg: oklch(0.76 0.12 35);
+  --badge-retro-bg: oklch(0.72 0.12 35 / 0.14);
+  --badge-future-fg: oklch(0.74 0.1 250);
+  --badge-future-bg: oklch(0.74 0.1 250 / 0.14);
+
+  --positive-color: oklch(0.76 0.1 152);
+
+  --hero-card-bg: linear-gradient(135deg, #262a45 0%, #1d1f31 60%);
+  --hero-card-border: #423a6a;
+  --hero-label-color: #b5abfc;
+  --profile-avatar-bg: #2b2741;
+  --profile-avatar-border: #796cbf;
+  --profile-avatar-fg: #d2cefd;
+
+  --income-hero-bg: linear-gradient(135deg, oklch(0.3 0.06 152) 0%, #1d2430 60%);
+  --income-hero-border: oklch(0.42 0.07 152);
+  --income-hero-label: oklch(0.8 0.09 152);
+  --income-box-bg: oklch(0.28 0.05 152);
+  --income-box-border: oklch(0.4 0.06 152);
+  --income-box-label: oklch(0.82 0.08 152);
+  --expense-box-bg: #2b2741;
+  --expense-box-border: #423a6a;
+  --expense-box-label: #b5abfc;
+
+  --fab-bg: #2b2741;
+  --fab-border: #9184d9;
+  --fab-fg: #d2cefd;
+}
+
 html, body, #root {
   height: 100%;
 }
@@ -19,13 +190,14 @@ body {
   background: var(--color-app);
   -webkit-font-smoothing: antialiased;
   font-family: var(--font-sans);
+  transition: background-color 0.15s ease;
 }
 
 a {
   color: var(--color-accent);
 }
 a:hover {
-  color: oklch(0.36 0.13 152);
+  color: var(--color-accent-light);
 }
 
 input, select {
@@ -41,7 +213,7 @@ input, select {
   height: 8px;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(20, 20, 15, 0.15);
+  background: rgba(var(--ink-rgb), 0.15);
   border-radius: 4px;
 }
 

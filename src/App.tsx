@@ -23,9 +23,9 @@ function MenuButton({ onClick }: { onClick: () => void }) {
       className="w-9 h-9 rounded-full flex items-center justify-center border-none cursor-pointer bg-transparent flex-shrink-0"
     >
       <svg width="20" height="20" viewBox="0 0 22 22">
-        <rect x="3" y="5" width="16" height="2.2" rx="1.1" fill="#14140F" />
-        <rect x="3" y="10" width="16" height="2.2" rx="1.1" fill="#14140F" />
-        <rect x="3" y="15" width="16" height="2.2" rx="1.1" fill="#14140F" />
+        <rect x="3" y="5" width="16" height="2.2" rx="1.1" fill="var(--color-ink)" />
+        <rect x="3" y="10" width="16" height="2.2" rx="1.1" fill="var(--color-ink)" />
+        <rect x="3" y="15" width="16" height="2.2" rx="1.1" fill="var(--color-ink)" />
       </svg>
     </button>
   );
@@ -38,7 +38,7 @@ function AppShell() {
   const [deleteEntryTarget, setDeleteEntryTarget] = useState<Entry | null>(null);
   const [showProfile, setShowProfile] = useState(false);
   const [showDrawer, setShowDrawer] = useState(false);
-  const { user, updateProfile } = useAuth();
+  const { user, updateProfile, logout } = useAuth();
   const { isLoading, error, deleteEntry } = useFinance();
   const name = user?.name ?? '';
 
@@ -53,7 +53,7 @@ function AppShell() {
   if (error) {
     return (
       <div className="min-h-screen bg-surface max-w-[560px] mx-auto flex items-center justify-center font-sans box-border px-6 text-center">
-        <div className="text-[13.5px]" style={{ color: 'oklch(0.5 0.15 35)' }}>
+        <div className="text-[13.5px]" style={{ color: 'var(--warning-color)' }}>
           {error}
         </div>
       </div>
@@ -65,7 +65,7 @@ function AppShell() {
       <div
         className="sticky top-0 z-60 flex items-center px-4 pt-[calc(env(safe-area-inset-top,0px)+10px)] pb-2"
         style={{
-          background: 'rgba(250,250,248,0.86)',
+          background: 'var(--header-blur-bg)',
           backdropFilter: 'blur(16px) saturate(180%)',
           WebkitBackdropFilter: 'blur(16px) saturate(180%)',
         }}
@@ -87,7 +87,13 @@ function AppShell() {
           <div className="relative w-full max-w-[560px] pointer-events-none">
             <button
               onClick={() => setShowAdd(true)}
-              className="absolute right-5 bottom-[calc(env(safe-area-inset-bottom,0px)+24px)] w-14 h-14 rounded-[28px] border-none text-white text-[28px] leading-[56px] shadow-[0_10px_24px_rgba(20,20,15,0.25)] pointer-events-auto cursor-pointer bg-accent"
+              className="absolute right-5 bottom-[calc(env(safe-area-inset-bottom,0px)+24px)] w-14 h-14 rounded-[28px] text-[28px] leading-[56px] pointer-events-auto cursor-pointer"
+              style={{
+                boxShadow: 'var(--fab-shadow)',
+                background: 'var(--fab-bg)',
+                border: '1px solid var(--fab-border)',
+                color: 'var(--fab-fg)',
+              }}
             >
               +
             </button>
@@ -95,7 +101,13 @@ function AppShell() {
         </div>
       )}
 
-      <SideDrawer open={showDrawer} tab={tab} onChange={setTab} onClose={() => setShowDrawer(false)} />
+      <SideDrawer
+        open={showDrawer}
+        tab={tab}
+        onChange={setTab}
+        onClose={() => setShowDrawer(false)}
+        onLogout={logout}
+      />
       <AddEntrySheet
         open={showAdd || !!editingEntry}
         editing={editingEntry}

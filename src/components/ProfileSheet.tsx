@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Sheet, SheetTitle, Field, inputClass } from './Sheet';
+import { Sheet, SheetTitle, Field, inputClass, primaryButtonStyle } from './Sheet';
 import { ApiError } from '../lib/api';
 
 export function ProfileSheet({
@@ -49,14 +49,15 @@ export function ProfileSheet({
         />
       </Field>
       {error && (
-        <div className="text-[13px] mb-3.5" style={{ color: 'oklch(0.5 0.15 35)' }}>
+        <div className="text-[13px] mb-3.5" style={{ color: 'var(--warning-color)' }}>
           {error}
         </div>
       )}
       <button
         onClick={submit}
         disabled={isSubmitting}
-        className="w-full py-[15px] rounded-2xl border-none text-[15.5px] font-bold cursor-pointer bg-ink text-white disabled:cursor-not-allowed"
+        className="w-full py-[15px] rounded-2xl text-[15.5px] font-bold cursor-pointer disabled:cursor-not-allowed"
+        style={primaryButtonStyle(!isSubmitting)}
       >
         {isSubmitting ? 'Salvando…' : 'Salvar'}
       </button>

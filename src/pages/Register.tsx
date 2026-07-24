@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Field, inputClass } from '../components/Sheet';
+import { Field, inputClass, primaryButtonStyle } from '../components/Sheet';
 import { useAuth } from '../state/auth';
 import { ApiError } from '../lib/api';
 
@@ -62,7 +62,7 @@ export function Register({ onSwitchToLogin }: { onSwitchToLogin: () => void }) {
       </Field>
 
       {error && (
-        <div className="text-[13px] mb-3.5" style={{ color: 'oklch(0.5 0.15 35)' }}>
+        <div className="text-[13px] mb-3.5" style={{ color: 'var(--warning-color)' }}>
           {error}
         </div>
       )}
@@ -70,11 +70,8 @@ export function Register({ onSwitchToLogin }: { onSwitchToLogin: () => void }) {
       <button
         disabled={!canSubmit}
         onClick={submit}
-        className="w-full py-[15px] rounded-2xl border-none text-[15.5px] font-bold cursor-pointer disabled:cursor-not-allowed mb-3"
-        style={{
-          background: canSubmit ? '#14140F' : 'rgba(20,20,15,0.15)',
-          color: canSubmit ? '#fff' : 'rgba(20,20,15,0.4)',
-        }}
+        className="w-full py-[15px] rounded-2xl text-[15.5px] font-bold cursor-pointer disabled:cursor-not-allowed mb-3"
+        style={primaryButtonStyle(canSubmit)}
       >
         {isSubmitting ? 'Criando…' : 'Criar conta'}
       </button>

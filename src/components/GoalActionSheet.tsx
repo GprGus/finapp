@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Sheet, SheetTitle, Field, inputClass } from './Sheet';
+import { Sheet, SheetTitle, Field, inputClass, primaryButtonStyle, dangerTextButtonStyle } from './Sheet';
 import { useFinance } from '../state/store';
 import type { Goal } from '../types';
 import { fmtBRL } from '../lib/format';
@@ -95,7 +95,7 @@ export function GoalActionSheet({
         </Field>
 
         {error && (
-          <div className="text-[13px] mb-3.5" style={{ color: 'oklch(0.5 0.15 35)' }}>
+          <div className="text-[13px] mb-3.5" style={{ color: 'var(--warning-color)' }}>
             {error}
           </div>
         )}
@@ -103,11 +103,8 @@ export function GoalActionSheet({
         <button
           disabled={!editName.trim() || !(parseFloat(editTarget) > 0) || isSubmitting}
           onClick={saveEdit}
-          className="w-full py-[15px] rounded-2xl border-none text-[15.5px] font-bold cursor-pointer mb-2.5 disabled:cursor-not-allowed"
-          style={{
-            background: editName.trim() && parseFloat(editTarget) > 0 ? '#14140F' : 'rgba(20,20,15,0.15)',
-            color: editName.trim() && parseFloat(editTarget) > 0 ? '#fff' : 'rgba(20,20,15,0.4)',
-          }}
+          className="w-full py-[15px] rounded-2xl text-[15.5px] font-bold cursor-pointer mb-2.5 disabled:cursor-not-allowed"
+          style={primaryButtonStyle(!!editName.trim() && parseFloat(editTarget) > 0)}
         >
           {isSubmitting ? 'Salvando…' : 'Salvar alterações'}
         </button>
@@ -150,7 +147,7 @@ export function GoalActionSheet({
       </Field>
 
       {error && (
-        <div className="text-[13px] mb-3.5" style={{ color: 'oklch(0.5 0.15 35)' }}>
+        <div className="text-[13px] mb-3.5" style={{ color: 'var(--warning-color)' }}>
           {error}
         </div>
       )}
@@ -158,11 +155,8 @@ export function GoalActionSheet({
       <button
         disabled={!parseFloat(amount) || isSubmitting}
         onClick={add}
-        className="w-full py-[15px] rounded-2xl border-none text-[15.5px] font-bold cursor-pointer mb-2.5 disabled:cursor-not-allowed"
-        style={{
-          background: parseFloat(amount) ? '#14140F' : 'rgba(20,20,15,0.15)',
-          color: parseFloat(amount) ? '#fff' : 'rgba(20,20,15,0.4)',
-        }}
+        className="w-full py-[15px] rounded-2xl text-[15.5px] font-bold cursor-pointer mb-2.5 disabled:cursor-not-allowed"
+        style={primaryButtonStyle(!!parseFloat(amount))}
       >
         Adicionar à meta
       </button>
@@ -171,7 +165,7 @@ export function GoalActionSheet({
         onClick={remove}
         disabled={isSubmitting}
         className="w-full py-[13px] rounded-2xl border-none text-[14px] font-bold cursor-pointer bg-transparent disabled:cursor-not-allowed"
-        style={{ color: 'oklch(0.5 0.15 35)' }}
+        style={dangerTextButtonStyle}
       >
         Excluir meta
       </button>

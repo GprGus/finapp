@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useFinance } from '../state/store';
+import { useTheme } from '../state/theme';
 import { fmtBRL, fmtSigned } from '../lib/format';
 import { getCategory, categoryDotColor } from '../lib/categories';
 import { EmptyState } from '../components/EmptyState';
@@ -14,6 +15,37 @@ function greeting(): string {
   if (h < 12) return 'Bom dia';
   if (h < 18) return 'Boa tarde';
   return 'Boa noite';
+}
+
+function ThemeToggle() {
+  const { theme, toggleTheme } = useTheme();
+  const isDark = theme === 'dark';
+  return (
+    <button
+      onClick={toggleTheme}
+      aria-label={isDark ? 'Ativar tema claro' : 'Ativar tema escuro'}
+      className="w-10 h-10 rounded-[20px] flex items-center justify-center border-none cursor-pointer flex-shrink-0 bg-ink/6"
+    >
+      {isDark ? (
+        <svg width="19" height="19" viewBox="0 0 20 20" fill="none">
+          <path
+            d="M10 2v2M10 16v2M4.2 4.2l1.4 1.4M14.4 14.4l1.4 1.4M2 10h2M16 10h2M4.2 15.8l1.4-1.4M14.4 5.6l1.4-1.4"
+            stroke="var(--color-ink)"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+          />
+          <circle cx="10" cy="10" r="4" fill="var(--color-ink)" />
+        </svg>
+      ) : (
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+          <path
+            d="M17 11.5A7.5 7.5 0 018.5 3 7.5 7.5 0 1017 11.5z"
+            fill="var(--color-ink)"
+          />
+        </svg>
+      )}
+    </button>
+  );
 }
 
 export function Dashboard({
@@ -53,16 +85,29 @@ export function Dashboard({
             {name.trim() || 'Bem-vindo'}
           </div>
         </div>
-        <button
-          onClick={onOpenProfile}
-          className="w-10 h-10 rounded-[20px] bg-ink text-white flex items-center justify-center text-base font-semibold border-none cursor-pointer"
-        >
-          {initial}
-        </button>
+        <div className="flex items-center gap-2.5">
+          <ThemeToggle />
+          <button
+            onClick={onOpenProfile}
+            className="w-10 h-10 rounded-[20px] flex items-center justify-center text-base font-semibold cursor-pointer"
+            style={{
+              background: 'var(--profile-avatar-bg)',
+              border: '1px solid var(--profile-avatar-border)',
+              color: 'var(--profile-avatar-fg)',
+            }}
+          >
+            {initial}
+          </button>
+        </div>
       </div>
 
-      <div className="bg-ink rounded-[24px] px-5 py-[22px] mb-[18px]">
-        <div className="text-[12.5px] text-white/55 mb-1.5">Saldo total</div>
+      <div
+        className="rounded-[24px] px-5 py-[22px] mb-[18px] border"
+        style={{ background: 'var(--hero-card-bg)', borderColor: 'var(--hero-card-border)' }}
+      >
+        <div className="text-[12.5px] mb-1.5" style={{ color: 'var(--hero-label-color)' }}>
+          Saldo total
+        </div>
         <div className="text-[32px] font-bold text-white tracking-tight tabular-nums">
           {fmtBRL(totalBalance)}
         </div>
@@ -73,7 +118,8 @@ export function Dashboard({
           <button
             key={acc.id}
             onClick={() => setEditingAccount(acc)}
-            className="flex-none w-[168px] text-left bg-white border border-ink/8 rounded-[18px] p-4 cursor-pointer"
+            className="flex-none w-[168px] text-left border border-ink/8 rounded-[18px] p-4 cursor-pointer"
+            style={{ background: 'var(--color-card)' }}
           >
             <div className="text-[11px] text-ink/45 uppercase tracking-wide mb-2">{acc.type}</div>
             <div className="text-[13.5px] text-ink font-semibold mb-3.5 truncate">{acc.name}</div>
@@ -112,7 +158,8 @@ export function Dashboard({
             <button
               key={g.id}
               onClick={() => setActiveGoalId(g.id)}
-              className="text-left bg-white border border-ink/8 rounded-2xl px-4 py-3.5 cursor-pointer"
+              className="text-left border border-ink/8 rounded-2xl px-4 py-3.5 cursor-pointer"
+              style={{ background: 'var(--color-card)' }}
             >
               <div className="flex justify-between mb-2">
                 <div className="text-sm font-semibold text-ink">{g.name}</div>
@@ -144,7 +191,7 @@ export function Dashboard({
           subtitle="Adicione lançamentos na aba Lançamentos"
         />
       ) : (
-        <div className="bg-white border border-ink/8 rounded-[18px] overflow-hidden">
+        <div className="border border-ink/8 rounded-[18px] overflow-hidden" style={{ background: 'var(--color-card)' }}>
           {recentEntries.map((item, i) => {
             const cat = getCategory(item.categoryId);
             return (
@@ -159,7 +206,7 @@ export function Dashboard({
                 </div>
                 <div
                   className="text-[14.5px] font-semibold tabular-nums"
-                  style={{ color: item.amount >= 0 ? 'oklch(0.42 0.13 152)' : '#14140F' }}
+                  style={{ color: item.amount >= 0 ? 'var(--positive-color)' : 'var(--color-ink)' }}
                 >
                   {fmtSigned(item.amount)}
                 </div>

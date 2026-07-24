@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Sheet, SheetTitle, Field, inputClass } from './Sheet';
+import { Sheet, SheetTitle, Field, inputClass, primaryButtonStyle, chipStyle, dangerTextButtonStyle } from './Sheet';
 import { useFinance } from '../state/store';
 import { todayISO } from '../lib/format';
 import { ApiError } from '../lib/api';
@@ -179,22 +179,14 @@ export function AddDebtSheet({
           <button
             onClick={() => setCadence('interval')}
             className="flex-1 py-2.5 rounded-xl border text-sm font-semibold cursor-pointer"
-            style={{
-              borderColor: 'rgba(20,20,15,0.1)',
-              background: cadence === 'interval' ? '#14140F' : '#fff',
-              color: cadence === 'interval' ? '#fff' : 'rgba(20,20,15,0.6)',
-            }}
+            style={chipStyle(cadence === 'interval')}
           >
             Qtd. de dias
           </button>
           <button
             onClick={() => setCadence('monthly')}
             className="flex-1 py-2.5 rounded-xl border text-sm font-semibold cursor-pointer"
-            style={{
-              borderColor: 'rgba(20,20,15,0.1)',
-              background: cadence === 'monthly' ? '#14140F' : '#fff',
-              color: cadence === 'monthly' ? '#fff' : 'rgba(20,20,15,0.6)',
-            }}
+            style={chipStyle(cadence === 'monthly')}
           >
             Dia fixo do mês
           </button>
@@ -226,11 +218,7 @@ export function AddDebtSheet({
                 key={a.id}
                 onClick={() => setAccountId(a.id)}
                 className="px-3 py-2 rounded-[10px] text-[13px] font-semibold border cursor-pointer"
-                style={{
-                  background: sel ? 'rgba(20,20,15,0.9)' : '#fff',
-                  color: sel ? '#fff' : 'rgba(20,20,15,0.6)',
-                  borderColor: sel ? '#14140F' : 'rgba(20,20,15,0.12)',
-                }}
+                style={chipStyle(sel)}
               >
                 {a.name}
               </button>
@@ -246,22 +234,14 @@ export function AddDebtSheet({
             <button
               onClick={() => setChargeNow(true)}
               className="flex-1 py-2.5 rounded-xl border text-sm font-semibold cursor-pointer"
-              style={{
-                borderColor: 'rgba(20,20,15,0.1)',
-                background: chargeNow ? '#14140F' : '#fff',
-                color: chargeNow ? '#fff' : 'rgba(20,20,15,0.6)',
-              }}
+              style={chipStyle(chargeNow)}
             >
               Sim, agora
             </button>
             <button
               onClick={() => setChargeNow(false)}
               className="flex-1 py-2.5 rounded-xl border text-sm font-semibold cursor-pointer"
-              style={{
-                borderColor: 'rgba(20,20,15,0.1)',
-                background: !chargeNow ? '#14140F' : '#fff',
-                color: !chargeNow ? '#fff' : 'rgba(20,20,15,0.6)',
-              }}
+              style={chipStyle(!chargeNow)}
             >
               Só nas próximas
             </button>
@@ -270,7 +250,7 @@ export function AddDebtSheet({
       )}
 
       {error && (
-        <div className="text-[13px] mb-3.5" style={{ color: 'oklch(0.5 0.15 35)' }}>
+        <div className="text-[13px] mb-3.5" style={{ color: 'var(--warning-color)' }}>
           {error}
         </div>
       )}
@@ -278,11 +258,8 @@ export function AddDebtSheet({
       <button
         disabled={!canSubmit}
         onClick={submit}
-        className="w-full py-[15px] rounded-2xl border-none text-[15.5px] font-bold cursor-pointer disabled:cursor-not-allowed"
-        style={{
-          background: canSubmit ? '#14140F' : 'rgba(20,20,15,0.15)',
-          color: canSubmit ? '#fff' : 'rgba(20,20,15,0.4)',
-        }}
+        className="w-full py-[15px] rounded-2xl text-[15.5px] font-bold cursor-pointer disabled:cursor-not-allowed"
+        style={primaryButtonStyle(canSubmit)}
       >
         {isSubmitting ? 'Salvando…' : editing ? 'Salvar alterações' : 'Adicionar dívida'}
       </button>
@@ -290,7 +267,8 @@ export function AddDebtSheet({
       {editing && onRequestAbate && editing.paidInstallments < editing.totalInstallments && (
         <button
           onClick={() => onRequestAbate(editing)}
-          className="w-full py-[13px] rounded-2xl border-none text-[14px] font-bold cursor-pointer bg-transparent mt-2.5 text-accent"
+          className="w-full py-[13px] rounded-2xl text-[14px] font-bold cursor-pointer bg-transparent mt-2.5 text-accent"
+          style={{ border: '1px solid var(--overlay-border-color)' }}
         >
           Lançar abatimento de parcelas
         </button>
@@ -300,7 +278,7 @@ export function AddDebtSheet({
         <button
           onClick={() => onRequestDelete(editing)}
           className="w-full py-[13px] rounded-2xl border-none text-[14px] font-bold cursor-pointer bg-transparent mt-2.5"
-          style={{ color: 'oklch(0.5 0.15 35)' }}
+          style={dangerTextButtonStyle}
         >
           Excluir dívida
         </button>
