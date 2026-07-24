@@ -74,6 +74,7 @@ interface FinanceContextValue {
     },
   ) => Promise<void>;
   deleteDebt: (id: string) => Promise<void>;
+  abateDebt: (id: string, input: { amount: number; installmentsAbated: number }) => Promise<void>;
   addEntry: (input: { date: string; desc: string; amount: number; categoryId: CategoryId; accountId: string }) => Promise<void>;
   updateEntry: (
     id: string,
@@ -187,6 +188,17 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
       deleteDebt: async (id) => {
         await apiFetch(`/debts/${id}`, { method: 'DELETE' });
         setState((s) => ({ ...s, debts: s.debts.filter((d) => d.id !== id) }));
+      },
+      abateDebt: async (id, input) => {
+        const { debt, entries: created } = await apiFetch<{ debt: Debt; entries: Entry[] }>(`/debts/${id}/abate`, {
+          method: 'POST',
+          body: input,
+        });
+        setState((s) => ({
+          ...s,
+          debts: s.debts.map((d) => (d.id === id ? debt : d)),
+          entries: [...created, ...s.entries],
+        }));
       },
 
       addEntry: async (input) => {

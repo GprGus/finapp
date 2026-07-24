@@ -12,11 +12,13 @@ export function AddDebtSheet({
   editing,
   onClose,
   onRequestDelete,
+  onRequestAbate,
 }: {
   open: boolean;
   editing?: Debt | null;
   onClose: () => void;
   onRequestDelete?: (debt: Debt) => void;
+  onRequestAbate?: (debt: Debt) => void;
 }) {
   const { state, addDebt, updateDebt } = useFinance();
   const [name, setName] = useState('');
@@ -284,6 +286,15 @@ export function AddDebtSheet({
       >
         {isSubmitting ? 'Salvando…' : editing ? 'Salvar alterações' : 'Adicionar dívida'}
       </button>
+
+      {editing && onRequestAbate && editing.paidInstallments < editing.totalInstallments && (
+        <button
+          onClick={() => onRequestAbate(editing)}
+          className="w-full py-[13px] rounded-2xl border-none text-[14px] font-bold cursor-pointer bg-transparent mt-2.5 text-accent"
+        >
+          Lançar abatimento de parcelas
+        </button>
+      )}
 
       {editing && onRequestDelete && (
         <button

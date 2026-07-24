@@ -3,7 +3,7 @@ import { and, eq } from 'drizzle-orm';
 import { db } from '../db/client.js';
 import { accounts, debts, entries } from '../db/schema.js';
 import { requireAuth } from '../auth/middleware.js';
-import { createDebtSchema, updateDebtSchema } from '../validation.js';
+import { abateDebtSchema, createDebtSchema, updateDebtSchema } from '../validation.js';
 import { dayOfMonth, nextChargeDateFor, todayISO } from '../lib/dates.js';
 import { chargeOverdueDebtCycles } from '../jobs/billDebts.js';
 
@@ -103,6 +103,59 @@ debtsRouter.patch('/:id', async (req, res) => {
   }
 
   res.json(debt);
+});
+
+// Lets the user record a lump-sum paydown: books one entry for the amount actually paid this
+// month, and manually skips ahead `installmentsAbated` cycles (both the progress counter and
+// nextChargeDate) so the billing job doesn't also charge the installments this already covered.
+debtsRouter.post('/:id/abate', async (req, res) => {
+  const parsed = abateDebtSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: 'Dados inválidos' });
+    return;
+  }
+  const { amount, installmentsAbated } = parsed.data;
+
+  const debt = await db.query.debts.findFirst({
+    where: and(eq(debts.id, req.params.id), eq(debts.userId, req.userId!)),
+  });
+  if (!debt) {
+    res.status(404).json({ error: 'Dívida não encontrada' });
+    return;
+  }
+
+  if (debt.paidInstallments + installmentsAbated > debt.totalInstallments) {
+    res.status(400).json({ error: 'Não é possível abater mais parcelas do que restam' });
+    return;
+  }
+
+  const today = todayISO();
+  const [entry] = await db
+    .insert(entries)
+    .values({
+      userId: req.userId!,
+      accountId: debt.accountId,
+      debtId: debt.id,
+      date: today,
+      desc: `${debt.name} (abatimento de ${installmentsAbated} parcela${installmentsAbated > 1 ? 's' : ''})`,
+      amount: -amount,
+      categoryId: 'dividas',
+      retro: false,
+    })
+    .returning();
+
+  let nextChargeDate = debt.nextChargeDate;
+  for (let i = 0; i < installmentsAbated; i++) {
+    nextChargeDate = nextChargeDateFor(nextChargeDate, debt);
+  }
+
+  const [updated] = await db
+    .update(debts)
+    .set({ paidInstallments: debt.paidInstallments + installmentsAbated, nextChargeDate })
+    .where(eq(debts.id, debt.id))
+    .returning();
+
+  res.status(201).json({ debt: updated, entries: [entry] });
 });
 
 debtsRouter.delete('/:id', async (req, res) => {

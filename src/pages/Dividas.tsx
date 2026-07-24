@@ -4,12 +4,14 @@ import { fmtBRL, daysUntil, dateLabel } from '../lib/format';
 import { EmptyState } from '../components/EmptyState';
 import { ConfirmDeleteSheet } from '../components/ConfirmDeleteSheet';
 import { AddDebtSheet } from '../components/AddDebtSheet';
+import { AbateDebtSheet } from '../components/AbateDebtSheet';
 import type { Debt } from '../types';
 
 export function Dividas() {
   const { state, deleteDebt } = useFinance();
   const [editing, setEditing] = useState<Debt | null>(null);
   const [target, setTarget] = useState<Debt | null>(null);
+  const [abating, setAbating] = useState<Debt | null>(null);
   const [showAdd, setShowAdd] = useState(false);
 
   const isPaidOff = (debt: Debt) => debt.paidInstallments >= debt.totalInstallments;
@@ -106,7 +108,13 @@ export function Dividas() {
           setEditing(null);
           setTarget(debt);
         }}
+        onRequestAbate={(debt) => {
+          setEditing(null);
+          setAbating(debt);
+        }}
       />
+
+      <AbateDebtSheet debt={abating} onClose={() => setAbating(null)} />
 
       <ConfirmDeleteSheet
         open={!!target}

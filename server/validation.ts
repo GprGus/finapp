@@ -100,6 +100,11 @@ export const updateDebtSchema = z
     path: ['paidInstallments'],
   });
 
+export const abateDebtSchema = z.object({
+  amount: z.number().finite().positive(),
+  installmentsAbated: z.number().int().positive(),
+});
+
 const categoryIdSchema = z.enum([
   'moradia',
   'alimentacao',
