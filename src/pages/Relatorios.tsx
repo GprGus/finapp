@@ -5,12 +5,13 @@ import { EXPENSE_CATEGORIES, categoryBarColor } from '../lib/categories';
 import { EmptyState } from '../components/EmptyState';
 import { chipStyle } from '../components/Sheet';
 
-type ReportView = 'despesas' | 'receitas' | 'misto';
+type ReportView = 'despesas' | 'receitas' | 'misto' | 'dividas';
 
 const TABS: { id: ReportView; label: string }[] = [
   { id: 'despesas', label: 'Despesas' },
   { id: 'receitas', label: 'Receitas' },
   { id: 'misto', label: 'Misto' },
+  { id: 'dividas', label: 'Dívidas' },
 ];
 
 export function Relatorios() {
@@ -58,6 +59,27 @@ export function Relatorios() {
     return { totalSpent, totalIncome, reportCats, incomeReport, mixedReport, saldo };
   }, [monthEntries]);
 
+  // Debts aren't scoped to the current month — it's a running lifetime total across every debt's
+  // installment progress, not tied to `monthEntries` like the other three views.
+  const debtsData = useMemo(() => {
+    const rows = state.debts.map((d) => {
+      const total = d.totalInstallments * d.installmentAmount;
+      const paid = d.paidInstallments * d.installmentAmount;
+      const remaining = total - paid;
+      return {
+        id: d.id,
+        name: d.name,
+        hue: d.hue,
+        paid,
+        remaining,
+        pctPaid: total > 0 ? Math.round((paid / total) * 100) : 0,
+      };
+    });
+    const totalPaid = rows.reduce((sum, r) => sum + r.paid, 0);
+    const totalRemaining = rows.reduce((sum, r) => sum + r.remaining, 0);
+    return { rows, totalPaid, totalRemaining };
+  }, [state.debts]);
+
   return (
     <div className="px-5 pt-5 pb-10">
       <div className="text-[26px] font-bold text-ink tracking-tight mb-1">Relatórios</div>
@@ -79,10 +101,17 @@ export function Relatorios() {
         })}
       </div>
 
-      {monthEntries.length === 0 && (
+      {view !== 'dividas' && monthEntries.length === 0 && (
         <EmptyState
           title="Nenhum dado neste mês"
           subtitle="Adicione lançamentos para ver seus relatórios"
+        />
+      )}
+
+      {view === 'dividas' && debtsData.rows.length === 0 && (
+        <EmptyState
+          title="Nenhuma dívida cadastrada"
+          subtitle="Cadastre uma dívida na aba Dívidas para ver o relatório"
         />
       )}
 
@@ -221,6 +250,54 @@ export function Relatorios() {
               ))}
             </div>
           )}
+        </>
+      )}
+
+      {view === 'dividas' && debtsData.rows.length > 0 && (
+        <>
+          <div className="flex gap-2 mb-[22px]">
+            <div
+              className="flex-1 min-w-0 rounded-[18px] px-2.5 py-3.5 border"
+              style={{ background: 'var(--income-box-bg)', borderColor: 'var(--income-box-border)' }}
+            >
+              <div className="text-[11px] mb-1" style={{ color: 'var(--income-box-label)' }}>
+                Já pago
+              </div>
+              <div className="text-[15px] font-bold text-white tabular-nums truncate">
+                {fmtBRL(debtsData.totalPaid)}
+              </div>
+            </div>
+            <div
+              className="flex-1 min-w-0 rounded-[18px] px-2.5 py-3.5 border"
+              style={{ background: 'var(--expense-box-bg)', borderColor: 'var(--expense-box-border)' }}
+            >
+              <div className="text-[11px] mb-1" style={{ color: 'var(--expense-box-label)' }}>
+                Restante
+              </div>
+              <div className="text-[15px] font-bold text-white tabular-nums truncate">
+                {fmtBRL(debtsData.totalRemaining)}
+              </div>
+            </div>
+          </div>
+          <div className="text-[15px] font-bold text-ink mb-3.5">Por dívida</div>
+          <div className="flex flex-col gap-4">
+            {debtsData.rows.map((r) => (
+              <div key={r.id}>
+                <div className="flex justify-between mb-1.5">
+                  <div className="text-[13.5px] font-semibold text-ink">{r.name}</div>
+                  <div className="text-[13px] text-ink/50 tabular-nums">
+                    {fmtBRL(r.paid)} de {fmtBRL(r.paid + r.remaining)}
+                  </div>
+                </div>
+                <div className="h-2 rounded-full bg-ink/8 overflow-hidden">
+                  <div
+                    className="h-full rounded-full"
+                    style={{ width: `${r.pctPaid}%`, background: categoryBarColor(r.hue) }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
         </>
       )}
     </div>
