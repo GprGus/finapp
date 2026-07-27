@@ -63,9 +63,17 @@ export function Relatorios() {
   // installment progress, not tied to `monthEntries` like the other three views.
   const debtsData = useMemo(() => {
     const rows = state.debts.map((d) => {
-      const total = d.totalInstallments * d.installmentAmount;
-      const paid = d.paidInstallments * d.installmentAmount;
-      const remaining = total - paid;
+      // "Paid" is the sum of what was actually charged (entries.debtId), not
+      // paidInstallments * installmentAmount — an abatimento usually pays less than a full
+      // installment's nominal value, and paidInstallments already advances by however many
+      // installments the paydown covers. Only installments billed through the normal cycle (no
+      // paydown) actually cost the full installmentAmount. Remaining still uses the nominal value
+      // since future not-yet-due installments will charge full price unless abated too.
+      const paid = state.entries
+        .filter((e) => e.debtId === d.id)
+        .reduce((sum, e) => sum + Math.abs(e.amount), 0);
+      const remaining = (d.totalInstallments - d.paidInstallments) * d.installmentAmount;
+      const total = paid + remaining;
       return {
         id: d.id,
         name: d.name,
@@ -78,7 +86,7 @@ export function Relatorios() {
     const totalPaid = rows.reduce((sum, r) => sum + r.paid, 0);
     const totalRemaining = rows.reduce((sum, r) => sum + r.remaining, 0);
     return { rows, totalPaid, totalRemaining };
-  }, [state.debts]);
+  }, [state.debts, state.entries]);
 
   return (
     <div className="px-5 pt-5 pb-10">
