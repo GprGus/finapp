@@ -87,7 +87,7 @@ function AppShell() {
           <div className="relative w-full max-w-[560px] pointer-events-none">
             <button
               onClick={() => setShowAdd(true)}
-              className="absolute right-5 bottom-[calc(env(safe-area-inset-bottom,0px)+24px)] w-14 h-14 rounded-[28px] text-[28px] leading-[56px] pointer-events-auto cursor-pointer"
+              className="absolute right-5 bottom-[calc(env(safe-area-inset-bottom,0px)+24px)] w-14 h-14 rounded-[28px] flex items-center justify-center text-[28px] leading-none pointer-events-auto cursor-pointer"
               style={{
                 boxShadow: 'var(--fab-shadow)',
                 background: 'var(--fab-bg)',
