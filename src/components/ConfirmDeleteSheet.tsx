@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Sheet, SheetTitle } from './Sheet';
-import { ApiError } from '../lib/api';
+import { ApiError } from '@/lib/api';
 
 export function ConfirmDeleteSheet({
   open,

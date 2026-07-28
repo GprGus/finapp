@@ -1,32 +1,34 @@
 import { useEffect, useState } from 'react';
-import { Sheet, SheetTitle, Field, inputClass, primaryButtonStyle, chipStyle, dangerTextButtonStyle } from './Sheet';
+import { Sheet, SheetTitle, Field, inputClass, primaryButtonStyle, chipStyle, dangerTextButtonStyle } from '@/components/Sheet';
 import { useFinance } from '../state/store';
 import { todayISO } from '../lib/format';
-import { ApiError } from '../lib/api';
-import type { Cadence, Subscription } from '../types';
+import { ApiError } from '@/lib/api';
+import type { Cadence, Debt } from '../types';
 
-const HUES = [40, 140, 250, 300, 20, 10, 220, 90, 152, 60];
+const HUES = [0, 15, 350, 335];
 
-export function AddSubscriptionSheet({
+export function AddDebtSheet({
   open,
   editing,
   onClose,
   onRequestDelete,
+  onRequestAbate,
 }: {
   open: boolean;
-  editing?: Subscription | null;
+  editing?: Debt | null;
   onClose: () => void;
-  onRequestDelete?: (subscription: Subscription) => void;
+  onRequestDelete?: (debt: Debt) => void;
+  onRequestAbate?: (debt: Debt) => void;
 }) {
-  const { state, addSubscription, updateSubscription } = useFinance();
+  const { state, addDebt, updateDebt } = useFinance();
   const [name, setName] = useState('');
-  const [price, setPrice] = useState('');
+  const [installmentAmount, setInstallmentAmount] = useState('');
+  const [totalInstallments, setTotalInstallments] = useState('');
+  const [paidInstallments, setPaidInstallments] = useState('0');
   const [nextChargeDate, setNextChargeDate] = useState(todayISO());
   const [cadence, setCadence] = useState<Cadence>('interval');
   const [intervalDays, setIntervalDays] = useState('30');
   const [accountId, setAccountId] = useState(state.accounts[0]?.id ?? '');
-  const [isRecurring, setIsRecurring] = useState(true);
-  const [endDate, setEndDate] = useState('');
   const [chargeNow, setChargeNow] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -37,32 +39,33 @@ export function AddSubscriptionSheet({
     setChargeNow(false);
     if (editing) {
       setName(editing.name);
-      setPrice(String(editing.price));
+      setInstallmentAmount(String(editing.installmentAmount));
+      setTotalInstallments(String(editing.totalInstallments));
+      setPaidInstallments(String(editing.paidInstallments));
       setNextChargeDate(editing.nextChargeDate);
       setCadence(editing.cadence);
       setIntervalDays(String(editing.intervalDays));
       setAccountId(editing.accountId);
-      setIsRecurring(editing.isRecurring);
-      setEndDate(editing.endDate ?? '');
     } else {
       setName('');
-      setPrice('');
+      setInstallmentAmount('');
+      setTotalInstallments('');
+      setPaidInstallments('0');
       setNextChargeDate(todayISO());
       setCadence('interval');
       setIntervalDays('30');
       setAccountId(state.accounts[0]?.id ?? '');
-      setIsRecurring(true);
-      setEndDate('');
     }
   }, [open, editing]);
 
   const canSubmit =
     !!name.trim() &&
-    parseFloat(price) > 0 &&
+    parseFloat(installmentAmount) > 0 &&
+    parseInt(totalInstallments, 10) > 0 &&
     !!nextChargeDate &&
     (cadence === 'monthly' || parseInt(intervalDays, 10) > 0) &&
     !!accountId &&
-    (isRecurring || !!endDate) &&
+    (!editing || parseInt(paidInstallments, 10) <= parseInt(totalInstallments, 10)) &&
     !isSubmitting;
 
   const billingDayPreview = Number(nextChargeDate.slice(8, 10));
@@ -74,23 +77,26 @@ export function AddSubscriptionSheet({
     try {
       const shared = {
         name: name.trim(),
-        price: parseFloat(price),
         accountId,
+        installmentAmount: parseFloat(installmentAmount),
+        totalInstallments: parseInt(totalInstallments, 10),
         cadence,
         intervalDays: parseInt(intervalDays, 10) || 30,
         nextChargeDate,
-        isRecurring,
-        endDate: isRecurring ? null : endDate,
       };
       if (editing) {
-        await updateSubscription(editing.id, { ...shared, hue: editing.hue });
+        await updateDebt(editing.id, {
+          ...shared,
+          paidInstallments: parseInt(paidInstallments, 10),
+          hue: editing.hue,
+        });
       } else {
         const hue = HUES[Math.floor(Math.random() * HUES.length)];
-        await addSubscription({ ...shared, hue, chargeNow });
+        await addDebt({ ...shared, hue, chargeNow });
       }
       onClose();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Erro ao salvar assinatura');
+      setError(err instanceof ApiError ? err.message : 'Erro ao salvar dívida');
     } finally {
       setIsSubmitting(false);
     }
@@ -101,7 +107,7 @@ export function AddSubscriptionSheet({
       <Sheet open={open} onClose={onClose}>
         <SheetTitle>Nenhuma conta cadastrada</SheetTitle>
         <div className="text-[13.5px] text-ink/50">
-          Cadastre uma conta na tela inicial antes de adicionar assinaturas.
+          Cadastre uma conta na tela inicial antes de adicionar dívidas.
         </div>
       </Sheet>
     );
@@ -109,28 +115,56 @@ export function AddSubscriptionSheet({
 
   return (
     <Sheet open={open} onClose={onClose}>
-      <SheetTitle>{editing ? 'Editar assinatura' : 'Nova assinatura'}</SheetTitle>
+      <SheetTitle>{editing ? 'Editar dívida' : 'Nova dívida'}</SheetTitle>
 
       <Field label="Nome">
         <input
           className={inputClass}
-          placeholder="Ex: Streaming Vídeo"
+          placeholder="Ex: Fatura renegociada, Empréstimo, Financiamento do carro"
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
       </Field>
 
-      <Field label="Valor (R$)">
-        <input
-          className={inputClass}
-          type="number"
-          placeholder="0,00"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-        />
-      </Field>
+      <div className="flex gap-2.5 mb-3.5">
+        <div className="flex-1">
+          <Field label="Valor da parcela (R$)">
+            <input
+              className={inputClass}
+              type="number"
+              placeholder="0,00"
+              value={installmentAmount}
+              onChange={(e) => setInstallmentAmount(e.target.value)}
+            />
+          </Field>
+        </div>
+        <div className="flex-1">
+          <Field label="Nº de parcelas">
+            <input
+              className={inputClass}
+              type="number"
+              min={1}
+              placeholder="Ex: 5"
+              value={totalInstallments}
+              onChange={(e) => setTotalInstallments(e.target.value)}
+            />
+          </Field>
+        </div>
+      </div>
 
-      <Field label="Próxima cobrança">
+      {editing && (
+        <Field label="Parcelas já pagas">
+          <input
+            className={inputClass}
+            type="number"
+            min={0}
+            value={paidInstallments}
+            onChange={(e) => setPaidInstallments(e.target.value)}
+          />
+        </Field>
+      )}
+
+      <Field label={editing ? 'Próxima cobrança' : 'Primeira cobrança'}>
         <input
           className={inputClass}
           type="date"
@@ -140,7 +174,7 @@ export function AddSubscriptionSheet({
       </Field>
 
       <div className="mb-3.5">
-        <div className="text-xs text-ink/50 mb-2">Como calcular a próxima cobrança?</div>
+        <div className="text-xs text-ink/50 mb-2">Como calcular a próxima parcela?</div>
         <div className="flex gap-2 mb-2.5">
           <button
             onClick={() => setCadence('interval')}
@@ -174,7 +208,7 @@ export function AddSubscriptionSheet({
         )}
       </div>
 
-      <div className="mb-3.5">
+      <div className="mb-4">
         <div className="text-xs text-ink/50 mb-2">Conta</div>
         <div className="flex gap-2 flex-wrap">
           {state.accounts.map((a) => {
@@ -193,40 +227,9 @@ export function AddSubscriptionSheet({
         </div>
       </div>
 
-      <div className="mb-3.5">
-        <div className="flex gap-2">
-          <button
-            onClick={() => setIsRecurring(true)}
-            className="flex-1 py-2.5 rounded-xl border text-sm font-semibold cursor-pointer"
-            style={chipStyle(isRecurring)}
-          >
-            Recorrente
-          </button>
-          <button
-            onClick={() => setIsRecurring(false)}
-            className="flex-1 py-2.5 rounded-xl border text-sm font-semibold cursor-pointer"
-            style={chipStyle(!isRecurring)}
-          >
-            Com término
-          </button>
-        </div>
-      </div>
-
-      {!isRecurring && (
-        <Field label="Data de término">
-          <input
-            className={inputClass}
-            type="date"
-            min={nextChargeDate}
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-          />
-        </Field>
-      )}
-
       {!editing && (
         <div className="mb-4">
-          <div className="text-xs text-ink/50 mb-1.5">Incluir cobrança na fatura atual?</div>
+          <div className="text-xs text-ink/50 mb-1.5">Incluir a primeira parcela na fatura atual?</div>
           <div className="flex gap-2">
             <button
               onClick={() => setChargeNow(true)}
@@ -258,8 +261,18 @@ export function AddSubscriptionSheet({
         className="w-full py-[15px] rounded-2xl text-[15.5px] font-bold cursor-pointer disabled:cursor-not-allowed"
         style={primaryButtonStyle(canSubmit)}
       >
-        {isSubmitting ? 'Salvando…' : editing ? 'Salvar alterações' : 'Adicionar assinatura'}
+        {isSubmitting ? 'Salvando…' : editing ? 'Salvar alterações' : 'Adicionar dívida'}
       </button>
+
+      {editing && onRequestAbate && editing.paidInstallments < editing.totalInstallments && (
+        <button
+          onClick={() => onRequestAbate(editing)}
+          className="w-full py-[13px] rounded-2xl text-[14px] font-bold cursor-pointer bg-transparent mt-2.5 text-accent"
+          style={{ border: '1px solid var(--overlay-border-color)' }}
+        >
+          Lançar abatimento de parcelas
+        </button>
+      )}
 
       {editing && onRequestDelete && (
         <button
@@ -267,7 +280,7 @@ export function AddSubscriptionSheet({
           className="w-full py-[13px] rounded-2xl border-none text-[14px] font-bold cursor-pointer bg-transparent mt-2.5"
           style={dangerTextButtonStyle}
         >
-          Excluir assinatura
+          Excluir dívida
         </button>
       )}
     </Sheet>

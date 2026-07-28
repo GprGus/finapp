@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Sheet, SheetTitle, Field, inputClass, primaryButtonStyle } from './Sheet';
-import { ApiError } from '../lib/api';
+import { ApiError } from '@/lib/api';
 
 export function ProfileSheet({
   open,

@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import type { Tab } from '../types';
 
 const TABS: { id: Tab; label: string }[] = [
@@ -78,6 +79,8 @@ export function SideDrawer({
   onClose: () => void;
   onLogout: () => void;
 }) {
+  const navigate = useNavigate();
+
   if (!open) return null;
 
   return (
@@ -91,6 +94,15 @@ export function SideDrawer({
         className="fixed left-0 top-0 bottom-0 w-[250px] z-91 bg-surface shadow-[20px_0_50px_rgba(0,0,0,0.15)] border-r px-3 pt-[calc(env(safe-area-inset-top,0px)+22px)] pb-[calc(env(safe-area-inset-bottom,0px)+20px)] overflow-auto box-border animate-slide-in-left"
         style={{ borderColor: 'var(--overlay-border-color)' }}
       >
+        <button
+          onClick={() => {
+            onClose();
+            navigate('/modulos');
+          }}
+          className="flex items-center gap-2 px-3 py-2 mb-3 rounded-xl border-none cursor-pointer text-left bg-transparent text-[13px] font-semibold text-ink/45"
+        >
+          ← Módulos
+        </button>
         <div className="text-[11px] font-bold text-ink/40 uppercase tracking-wide px-3 mb-3">Navegação</div>
         <div className="flex flex-col gap-1">
           {TABS.map((t) => {

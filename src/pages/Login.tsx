@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Field, inputClass, primaryButtonStyle } from '../components/Sheet';
-import { useAuth } from '../state/auth';
-import { ApiError } from '../lib/api';
+import { Field, inputClass, primaryButtonStyle } from '@/components/Sheet';
+import { useAuth } from '@/state/auth';
+import { ApiError } from '@/lib/api';
 
 export function Login({ onSwitchToRegister }: { onSwitchToRegister: () => void }) {
   const { login } = useAuth();

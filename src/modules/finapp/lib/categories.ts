@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 import type { Category, CategoryId } from '../types';
-import type { Theme } from '../state/theme';
+import type { Theme } from '@/state/theme';
 
 export const CATEGORIES: Category[] = [
   { id: 'moradia', name: 'Moradia', hue: 40 },

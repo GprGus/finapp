@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Sheet, SheetTitle, Field, inputClass, primaryButtonStyle, chipStyle, dangerTextButtonStyle } from './Sheet';
+import { Sheet, SheetTitle, Field, inputClass, primaryButtonStyle, chipStyle, dangerTextButtonStyle } from '@/components/Sheet';
 import { useFinance } from '../state/store';
 import { EXPENSE_CATEGORIES } from '../lib/categories';
 import { todayISO } from '../lib/format';
-import { ApiError } from '../lib/api';
+import { ApiError } from '@/lib/api';
 import type { CategoryId, Entry } from '../types';
 
 export function AddEntrySheet({

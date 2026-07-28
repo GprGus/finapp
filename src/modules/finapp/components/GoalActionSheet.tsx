@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Sheet, SheetTitle, Field, inputClass, primaryButtonStyle, dangerTextButtonStyle } from './Sheet';
+import { Sheet, SheetTitle, Field, inputClass, primaryButtonStyle, dangerTextButtonStyle } from '@/components/Sheet';
 import { useFinance } from '../state/store';
 import type { Goal } from '../types';
 import { fmtBRL } from '../lib/format';
-import { ApiError } from '../lib/api';
+import { ApiError } from '@/lib/api';
 
 export function GoalActionSheet({
   goal,

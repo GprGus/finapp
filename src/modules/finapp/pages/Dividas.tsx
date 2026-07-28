@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
 import { useFinance } from '../state/store';
-import { useTheme } from '../state/theme';
+import { useTheme } from '@/state/theme';
 import { fmtBRL, daysUntil, dateLabel } from '../lib/format';
 import { avatarTileStyle, categoryBarColor } from '../lib/categories';
-import { EmptyState } from '../components/EmptyState';
-import { ConfirmDeleteSheet } from '../components/ConfirmDeleteSheet';
+import { EmptyState } from '@/components/EmptyState';
+import { ConfirmDeleteSheet } from '@/components/ConfirmDeleteSheet';
 import { AddDebtSheet } from '../components/AddDebtSheet';
 import { AbateDebtSheet } from '../components/AbateDebtSheet';
 import type { Debt } from '../types';

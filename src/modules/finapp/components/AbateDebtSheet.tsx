@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Sheet, SheetTitle, Field, inputClass, primaryButtonStyle } from './Sheet';
+import { Sheet, SheetTitle, Field, inputClass, primaryButtonStyle } from '@/components/Sheet';
 import { useFinance } from '../state/store';
 import { fmtBRL } from '../lib/format';
-import { ApiError } from '../lib/api';
+import { ApiError } from '@/lib/api';
 import type { Debt } from '../types';
 
 export function AbateDebtSheet({ debt, onClose }: { debt: Debt | null; onClose: () => void }) {

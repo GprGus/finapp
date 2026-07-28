@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Sheet, SheetTitle, Field, inputClass, primaryButtonStyle, chipStyle, dangerTextButtonStyle } from './Sheet';
+import { Sheet, SheetTitle, Field, inputClass, primaryButtonStyle, chipStyle, dangerTextButtonStyle } from '@/components/Sheet';
 import { useFinance } from '../state/store';
-import { ApiError } from '../lib/api';
+import { ApiError } from '@/lib/api';
 import type { Account, AccountType } from '../types';
 
 const TYPES: AccountType[] = ['Corrente', 'Poupança', 'Cartão', 'Investimento', 'Dinheiro'];

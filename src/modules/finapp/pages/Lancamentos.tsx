@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useFinance } from '../state/store';
 import { fmtSigned, dateLabel, todayISO } from '../lib/format';
 import { getCategory, categoryDotColor } from '../lib/categories';
-import { EmptyState } from '../components/EmptyState';
+import { EmptyState } from '@/components/EmptyState';
 import type { Entry } from '../types';
 
 export function Lancamentos({ onSelectEntry }: { onSelectEntry: (entry: Entry) => void }) {

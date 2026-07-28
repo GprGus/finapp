@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useFinance } from '../state/store';
 import { fmtBRL, nextChargeDateFor, dateLabel, monthLabel } from '../lib/format';
 import { EXPENSE_CATEGORIES, categoryBarColor, getCategory } from '../lib/categories';
-import { EmptyState } from '../components/EmptyState';
+import { EmptyState } from '@/components/EmptyState';
 import type { CategoryId, Debt, Subscription } from '../types';
 
 const FORECAST_MONTHS = 24;

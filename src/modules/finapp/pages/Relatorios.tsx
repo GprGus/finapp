@@ -2,8 +2,8 @@ import { useMemo, useState } from 'react';
 import { useFinance } from '../state/store';
 import { fmtBRL, fmtSigned, monthLabel } from '../lib/format';
 import { EXPENSE_CATEGORIES, categoryBarColor } from '../lib/categories';
-import { EmptyState } from '../components/EmptyState';
-import { chipStyle } from '../components/Sheet';
+import { EmptyState } from '@/components/EmptyState';
+import { chipStyle } from '@/components/Sheet';
 
 type ReportView = 'despesas' | 'receitas' | 'misto' | 'dividas';
 

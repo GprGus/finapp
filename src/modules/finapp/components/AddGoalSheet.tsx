@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Sheet, SheetTitle, Field, inputClass, primaryButtonStyle } from './Sheet';
+import { Sheet, SheetTitle, Field, inputClass, primaryButtonStyle } from '@/components/Sheet';
 import { useFinance } from '../state/store';
-import { ApiError } from '../lib/api';
+import { ApiError } from '@/lib/api';
 
 export function AddGoalSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { addGoal } = useFinance();

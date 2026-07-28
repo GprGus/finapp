@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import type { User } from '../types';
-import { apiFetch } from '../lib/api';
+import type { User } from '@/types';
+import { apiFetch } from '@/lib/api';
 
 interface AuthContextValue {
   user: User | null;

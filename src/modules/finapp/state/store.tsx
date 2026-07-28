@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Account, AccountType, Cadence, Debt, Entry, FinanceState, Goal, Subscription, CategoryId } from '../types';
-import { apiFetch } from '../lib/api';
+import { apiFetch } from '@/lib/api';
 import { todayISO } from '../lib/format';
 
 const EMPTY_STATE: FinanceState = {
