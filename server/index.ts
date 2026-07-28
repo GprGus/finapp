@@ -11,6 +11,10 @@ import { goalsRouter } from './routes/goals.js';
 import { subscriptionsRouter } from './routes/subscriptions.js';
 import { debtsRouter } from './routes/debts.js';
 import { entriesRouter } from './routes/entries.js';
+import { friendsRouter } from './routes/friends.js';
+import { agendaRouter } from './routes/agenda.js';
+import { recipesRouter } from './routes/recipes.js';
+import { notesRouter } from './routes/notes.js';
 import { billDueSubscriptions } from './jobs/billSubscriptions.js';
 import { billDueDebts } from './jobs/billDebts.js';
 
@@ -34,7 +38,9 @@ async function main() {
 
   const app = express();
   app.set('trust proxy', 1);
-  app.use(express.json());
+  // Default 100kb is too small for Notes' inline base64 images (contentHtml can embed several) —
+  // bumped app-wide rather than per-route since Express applies body-parser before routing.
+  app.use(express.json({ limit: '15mb' }));
   app.use(cookieParser());
 
   app.use('/api/auth', authRouter);
@@ -44,6 +50,10 @@ async function main() {
   app.use('/api/subscriptions', subscriptionsRouter);
   app.use('/api/debts', debtsRouter);
   app.use('/api/entries', entriesRouter);
+  app.use('/api/friends', friendsRouter);
+  app.use('/api/agenda', agendaRouter);
+  app.use('/api/recipes', recipesRouter);
+  app.use('/api/notes', notesRouter);
 
   app.use(express.static(distDir));
   app.use((req, res, next) => {

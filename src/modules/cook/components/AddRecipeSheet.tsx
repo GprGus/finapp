@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Sheet, SheetTitle, Field, inputClass, primaryButtonStyle, dangerTextButtonStyle } from '@/components/Sheet';
+import { ApiError } from '@/lib/api';
 import { useCook } from '../state/store';
 import type { Ingredient, Recipe } from '../types';
 
@@ -22,9 +23,12 @@ export function AddRecipeSheet({
   const [prepMinutes, setPrepMinutes] = useState('');
   const [ingredients, setIngredients] = useState<Ingredient[]>([emptyIngredient()]);
   const [steps, setSteps] = useState<string[]>(['']);
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (!open) return;
+    setError(null);
     if (editing) {
       setName(editing.name);
       setServings(editing.servings != null ? String(editing.servings) : '');
@@ -40,24 +44,32 @@ export function AddRecipeSheet({
     }
   }, [open, editing]);
 
-  const canSubmit = name.trim().length > 0;
+  const canSubmit = name.trim().length > 0 && !isSubmitting;
 
-  const submit = () => {
+  const submit = async () => {
     if (!canSubmit) return;
-    const data = {
-      name: name.trim(),
-      servings: servings.trim() ? Number(servings) : null,
-      prepMinutes: prepMinutes.trim() ? Number(prepMinutes) : null,
-      ingredients: ingredients.filter((i) => i.name.trim()),
-      steps: steps.map((s) => s.trim()).filter(Boolean),
-      hue: editing?.hue ?? Math.floor(Math.random() * 360),
-    };
-    if (editing) {
-      updateRecipe(editing.id, data);
-    } else {
-      addRecipe(data);
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      const data = {
+        name: name.trim(),
+        servings: servings.trim() ? Number(servings) : null,
+        prepMinutes: prepMinutes.trim() ? Number(prepMinutes) : null,
+        ingredients: ingredients.filter((i) => i.name.trim()),
+        steps: steps.map((s) => s.trim()).filter(Boolean),
+        hue: editing?.hue ?? Math.floor(Math.random() * 360),
+      };
+      if (editing) {
+        await updateRecipe(editing.id, data);
+      } else {
+        await addRecipe(data);
+      }
+      onClose();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Erro ao salvar receita');
+    } finally {
+      setIsSubmitting(false);
     }
-    onClose();
   };
 
   return (
@@ -170,13 +182,19 @@ export function AddRecipeSheet({
         </button>
       </div>
 
+      {error && (
+        <div className="text-[13px] mb-3.5" style={{ color: 'var(--warning-color)' }}>
+          {error}
+        </div>
+      )}
+
       <button
         onClick={submit}
         disabled={!canSubmit}
         className="w-full py-[15px] rounded-2xl text-[15.5px] font-bold cursor-pointer disabled:cursor-not-allowed mb-2.5"
         style={primaryButtonStyle(canSubmit)}
       >
-        {editing ? 'Salvar alterações' : 'Adicionar'}
+        {isSubmitting ? 'Salvando…' : editing ? 'Salvar alterações' : 'Adicionar'}
       </button>
 
       {editing && onRequestDelete && (

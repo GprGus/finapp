@@ -29,6 +29,20 @@
       "when": 1784836882052,
       "tag": "0003_massive_abomination",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1785258094836,
+      "tag": "0004_complete_mordo",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1785258336756,
+      "tag": "0005_solid_pretty_boy",
+      "breakpoints": true
     }
   ]
 }

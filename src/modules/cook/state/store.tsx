@@ -1,49 +1,49 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { apiFetch } from '@/lib/api';
 import type { Recipe } from '../types';
-
-const STORAGE_KEY = 'cook.recipes';
-
-function loadRecipes(): Recipe[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as Recipe[]) : [];
-  } catch {
-    return [];
-  }
-}
 
 interface CookContextValue {
   recipes: Recipe[];
-  addRecipe: (data: Omit<Recipe, 'id' | 'createdAt'>) => Recipe;
-  updateRecipe: (id: string, data: Omit<Recipe, 'id' | 'createdAt'>) => void;
-  deleteRecipe: (id: string) => void;
+  isLoading: boolean;
+  error: string | null;
+  addRecipe: (data: Omit<Recipe, 'id' | 'createdAt'>) => Promise<void>;
+  updateRecipe: (id: string, data: Omit<Recipe, 'id' | 'createdAt'>) => Promise<void>;
+  deleteRecipe: (id: string) => Promise<void>;
 }
 
 const CookContext = createContext<CookContextValue | null>(null);
 
 export function CookProvider({ children }: { children: ReactNode }) {
-  const [recipes, setRecipes] = useState<Recipe[]>(loadRecipes);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(recipes));
-  }, [recipes]);
+    apiFetch<Recipe[]>('/recipes')
+      .then(setRecipes)
+      .catch((err) => setError(err instanceof Error ? err.message : 'Erro ao carregar receitas'))
+      .finally(() => setIsLoading(false));
+  }, []);
 
   const value = useMemo<CookContextValue>(
     () => ({
       recipes,
-      addRecipe: (data) => {
-        const recipe: Recipe = { ...data, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
+      isLoading,
+      error,
+      addRecipe: async (data) => {
+        const recipe = await apiFetch<Recipe>('/recipes', { method: 'POST', body: data });
         setRecipes((prev) => [recipe, ...prev]);
-        return recipe;
       },
-      updateRecipe: (id, data) => {
-        setRecipes((prev) => prev.map((r) => (r.id === id ? { ...r, ...data } : r)));
+      updateRecipe: async (id, data) => {
+        const recipe = await apiFetch<Recipe>(`/recipes/${id}`, { method: 'PATCH', body: data });
+        setRecipes((prev) => prev.map((r) => (r.id === id ? recipe : r)));
       },
-      deleteRecipe: (id) => {
+      deleteRecipe: async (id) => {
+        await apiFetch(`/recipes/${id}`, { method: 'DELETE' });
         setRecipes((prev) => prev.filter((r) => r.id !== id));
       },
     }),
-    [recipes],
+    [recipes, isLoading, error],
   );
 
   return <CookContext.Provider value={value}>{children}</CookContext.Provider>;

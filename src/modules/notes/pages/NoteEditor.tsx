@@ -29,7 +29,11 @@ export function NoteEditor({
 
   const scheduleSave = (data: Partial<Pick<Note, 'title' | 'contentHtml'>>) => {
     window.clearTimeout(saveTimer.current);
-    saveTimer.current = window.setTimeout(() => updateNote(note.id, data), 400);
+    // Best-effort autosave: fire the PATCH without blocking typing, and swallow failures here —
+    // the explicit flush in goBack() is what the user actually sees/waits on.
+    saveTimer.current = window.setTimeout(() => {
+      updateNote(note.id, data).catch((err) => console.error('Falha ao salvar nota', err));
+    }, 400);
   };
 
   const handleTitleChange = (value: string) => {
@@ -71,9 +75,13 @@ export function NoteEditor({
     reader.readAsDataURL(file);
   };
 
-  const goBack = () => {
+  const goBack = async () => {
     window.clearTimeout(saveTimer.current);
-    updateNote(note.id, { title, contentHtml: editorRef.current?.innerHTML ?? '' });
+    try {
+      await updateNote(note.id, { title, contentHtml: editorRef.current?.innerHTML ?? '' });
+    } catch (err) {
+      console.error('Falha ao salvar nota', err);
+    }
     onBack();
   };
 

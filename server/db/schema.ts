@@ -1,4 +1,4 @@
-import { boolean, date, index, integer, numeric, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { boolean, date, index, integer, jsonb, numeric, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -80,6 +80,81 @@ export const debts = pgTable(
     index('debts_user_id_idx').on(t.userId),
     index('debts_account_id_idx').on(t.accountId),
   ],
+);
+
+export const friendRequests = pgTable(
+  'friend_requests',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    requesterId: uuid('requester_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    addresseeId: uuid('addressee_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    status: text('status').notNull().default('pending'), // 'pending' | 'accepted' (declined/cancelled rows are deleted, not statused)
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('friend_requests_requester_id_idx').on(t.requesterId),
+    index('friend_requests_addressee_id_idx').on(t.addresseeId),
+  ],
+);
+
+export const agendaEvents = pgTable(
+  'agenda_events',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    title: text('title').notNull(),
+    notes: text('notes'),
+    date: date('date').notNull(),
+    time: text('time'),
+    sharedFromUserId: uuid('shared_from_user_id').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('agenda_events_user_id_idx').on(t.userId), index('agenda_events_date_idx').on(t.date)],
+);
+
+export const agendaEventShares = pgTable(
+  'agenda_event_shares',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    eventId: uuid('event_id').notNull().references(() => agendaEvents.id, { onDelete: 'cascade' }),
+    fromUserId: uuid('from_user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    toUserId: uuid('to_user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    status: text('status').notNull().default('pending'), // 'pending' | 'accepted' (declined rows are deleted)
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('agenda_event_shares_to_user_id_idx').on(t.toUserId),
+    index('agenda_event_shares_event_id_idx').on(t.eventId),
+  ],
+);
+
+export const recipes = pgTable(
+  'recipes',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    servings: integer('servings'),
+    prepMinutes: integer('prep_minutes'),
+    ingredients: jsonb('ingredients').notNull(), // Ingredient[] — see src/modules/cook/types.ts
+    steps: jsonb('steps').notNull(), // string[]
+    hue: integer('hue').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('recipes_user_id_idx').on(t.userId)],
+);
+
+export const notes = pgTable(
+  'notes',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    title: text('title').notNull().default(''),
+    contentHtml: text('content_html').notNull().default(''),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('notes_user_id_idx').on(t.userId)],
 );
 
 export const entries = pgTable(

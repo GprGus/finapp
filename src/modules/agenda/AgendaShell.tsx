@@ -1,10 +1,6 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useNotes } from './state/store';
-import { ConfirmDeleteSheet } from '@/components/ConfirmDeleteSheet';
-import { NotesList } from './pages/NotesList';
-import { NoteEditor } from './pages/NoteEditor';
-import type { Note } from './types';
+import { useAgenda } from './state/store';
+import { Calendar } from './pages/Calendar';
 
 function BackButton({ onClick }: { onClick: () => void }) {
   return (
@@ -26,11 +22,9 @@ function BackButton({ onClick }: { onClick: () => void }) {
   );
 }
 
-export function NotesShell() {
+export function AgendaShell() {
   const navigate = useNavigate();
-  const { notes, isLoading, error, addNote, deleteNote } = useNotes();
-  const [openNoteId, setOpenNoteId] = useState<string | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<Note | null>(null);
+  const { isLoading, error } = useAgenda();
 
   if (isLoading) {
     return (
@@ -50,28 +44,6 @@ export function NotesShell() {
     );
   }
 
-  const openNote = notes.find((n) => n.id === openNoteId) ?? null;
-
-  if (openNote) {
-    return (
-      <div className="max-w-[560px] mx-auto relative font-sans box-border bg-surface">
-        <NoteEditor note={openNote} onBack={() => setOpenNoteId(null)} onRequestDelete={setDeleteTarget} />
-        <ConfirmDeleteSheet
-          open={!!deleteTarget}
-          title={`Excluir "${deleteTarget?.title.trim() || 'Sem título'}"?`}
-          onConfirm={async () => {
-            if (deleteTarget) {
-              await deleteNote(deleteTarget.id);
-              setDeleteTarget(null);
-              setOpenNoteId(null);
-            }
-          }}
-          onClose={() => setDeleteTarget(null)}
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-surface max-w-[560px] mx-auto relative font-sans box-border shadow-[0_0_60px_rgba(20,20,15,0.06)]">
       <div
@@ -83,13 +55,10 @@ export function NotesShell() {
         }}
       >
         <BackButton onClick={() => navigate('/modulos')} />
-        <div className="text-[15px] font-bold text-ink">Notes</div>
+        <div className="text-[15px] font-bold text-ink">Agenda</div>
       </div>
 
-      <NotesList
-        onSelectNote={(note) => setOpenNoteId(note.id)}
-        onNewNote={async () => setOpenNoteId((await addNote()).id)}
-      />
+      <Calendar />
     </div>
   );
 }

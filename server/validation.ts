@@ -125,3 +125,56 @@ export const createEntrySchema = z.object({
   categoryId: categoryIdSchema,
   accountId: z.string().uuid(),
 });
+
+export const createRecipeSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  servings: z.number().int().positive().nullable().optional(),
+  prepMinutes: z.number().int().positive().nullable().optional(),
+  ingredients: z
+    .array(
+      z.object({
+        id: z.string(),
+        name: z.string().trim().min(1).max(120),
+        quantity: z.string().trim().max(40),
+        unit: z.string().trim().max(40),
+      }),
+    )
+    .max(100),
+  steps: z.array(z.string().trim().min(1).max(1000)).max(100),
+  hue: z.number().int().min(0).max(360),
+});
+
+// Generous cap so a few inline base64 images fit — express.json()'s limit is bumped to match, see index.ts.
+export const updateNoteSchema = z.object({
+  title: z.string().trim().max(200).optional(),
+  contentHtml: z.string().max(10_000_000).optional(),
+});
+
+export const sendFriendRequestSchema = z.object({
+  email: z.string().trim().toLowerCase().email(),
+});
+
+const timeSchema = z
+  .string()
+  .regex(/^\d{2}:\d{2}$/)
+  .nullable()
+  .optional();
+
+export const createAgendaEventSchema = z.object({
+  title: z.string().trim().min(1).max(120),
+  notes: z.string().trim().max(2000).nullable().optional(),
+  date: isoDateSchema,
+  time: timeSchema,
+  shareWithFriendIds: z.array(z.string().uuid()).max(50).optional(),
+});
+
+export const updateAgendaEventSchema = z.object({
+  title: z.string().trim().min(1).max(120),
+  notes: z.string().trim().max(2000).nullable().optional(),
+  date: isoDateSchema,
+  time: timeSchema,
+});
+
+export const shareAgendaEventSchema = z.object({
+  friendIds: z.array(z.string().uuid()).min(1).max(50),
+});

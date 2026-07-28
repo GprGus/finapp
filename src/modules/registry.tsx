@@ -72,4 +72,20 @@ export const MODULES: ModuleDef[] = [
       </svg>
     ),
   },
+  {
+    id: 'agenda',
+    name: 'Agenda',
+    description: 'Compromissos por mês, com títulos e horários',
+    path: '/agenda',
+    hue: 280,
+    icon: (color) => (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+        <rect x="2.5" y="4.5" width="19" height="17" rx="3" stroke={color} strokeWidth="1.8" />
+        <path d="M2.5 9.5h19" stroke={color} strokeWidth="1.8" />
+        <path d="M7 2.5v4M17 2.5v4" stroke={color} strokeWidth="1.8" strokeLinecap="round" />
+        <rect x="6" y="12.5" width="3" height="3" rx="0.8" fill={color} />
+        <rect x="10.5" y="12.5" width="3" height="3" rx="0.8" fill={color} />
+      </svg>
+    ),
+  },
 ];

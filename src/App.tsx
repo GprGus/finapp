@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/state/auth';
+import { FriendsProvider } from '@/state/friends';
 import { ModuleSelector } from './pages/ModuleSelector';
+import { Friends } from './pages/Friends';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { FinApp } from './modules/finapp';
 import { Cook } from './modules/cook';
 import { Notes } from './modules/notes';
+import { Agenda } from './modules/agenda';
 
 function AuthGate() {
   const { user, isLoading } = useAuth();
@@ -29,13 +32,17 @@ function AuthGate() {
   }
 
   return (
-    <Routes>
-      <Route path="/modulos" element={<ModuleSelector />} />
-      <Route path="/finapp/*" element={<FinApp />} />
-      <Route path="/cook/*" element={<Cook />} />
-      <Route path="/notes/*" element={<Notes />} />
-      <Route path="*" element={<Navigate to="/modulos" replace />} />
-    </Routes>
+    <FriendsProvider>
+      <Routes>
+        <Route path="/modulos" element={<ModuleSelector />} />
+        <Route path="/amigos" element={<Friends />} />
+        <Route path="/finapp/*" element={<FinApp />} />
+        <Route path="/cook/*" element={<Cook />} />
+        <Route path="/notes/*" element={<Notes />} />
+        <Route path="/agenda/*" element={<Agenda />} />
+        <Route path="*" element={<Navigate to="/modulos" replace />} />
+      </Routes>
+    </FriendsProvider>
   );
 }
 

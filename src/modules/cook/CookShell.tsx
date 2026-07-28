@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useCook } from './state/store';
 import { Recipes } from './pages/Recipes';
 
 function BackButton({ onClick }: { onClick: () => void }) {
@@ -23,6 +24,25 @@ function BackButton({ onClick }: { onClick: () => void }) {
 
 export function CookShell() {
   const navigate = useNavigate();
+  const { isLoading, error } = useCook();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-surface max-w-[560px] mx-auto flex items-center justify-center font-sans box-border">
+        <div className="text-ink/40 text-sm">Carregando…</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-surface max-w-[560px] mx-auto flex items-center justify-center font-sans box-border px-6 text-center">
+        <div className="text-[13.5px]" style={{ color: 'var(--warning-color)' }}>
+          {error}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-surface max-w-[560px] mx-auto relative font-sans box-border shadow-[0_0_60px_rgba(20,20,15,0.06)]">

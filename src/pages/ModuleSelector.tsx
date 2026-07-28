@@ -1,9 +1,36 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/state/auth';
+import { useFriends } from '@/state/friends';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { ProfileSheet } from '@/components/ProfileSheet';
 import { MODULES } from '@/modules/registry';
+
+function FriendsButton() {
+  const { incomingRequests } = useFriends();
+  return (
+    <Link
+      to="/amigos"
+      aria-label="Amigos"
+      className="relative w-10 h-10 rounded-[20px] flex items-center justify-center border-none cursor-pointer flex-shrink-0 bg-ink/6"
+    >
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+        <circle cx="7.5" cy="6" r="3" stroke="var(--color-ink)" strokeWidth="1.6" />
+        <path d="M2 17c0-3 2.5-5 5.5-5s5.5 2 5.5 5" stroke="var(--color-ink)" strokeWidth="1.6" strokeLinecap="round" />
+        <circle cx="14.5" cy="7" r="2.3" stroke="var(--color-ink)" strokeWidth="1.6" />
+        <path d="M13 17c.2-2.3 1.8-4 3.8-4 1 0 1.9.35 2.6.95" stroke="var(--color-ink)" strokeWidth="1.6" strokeLinecap="round" />
+      </svg>
+      {incomingRequests.length > 0 && (
+        <span
+          className="absolute top-0.5 right-0.5 min-w-[16px] h-4 px-1 rounded-full text-[10px] font-bold flex items-center justify-center"
+          style={{ background: 'var(--warning-color)', color: '#fff' }}
+        >
+          {incomingRequests.length}
+        </span>
+      )}
+    </Link>
+  );
+}
 
 function greeting(): string {
   const h = new Date().getHours();
@@ -26,6 +53,7 @@ export function ModuleSelector() {
           <div className="text-[22px] font-bold text-ink tracking-tight">{name.trim() || 'Bem-vindo'}</div>
         </div>
         <div className="flex items-center gap-2.5">
+          <FriendsButton />
           <ThemeToggle />
           <button
             onClick={() => setShowProfile(true)}

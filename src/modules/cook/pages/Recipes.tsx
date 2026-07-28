@@ -68,7 +68,7 @@ export function Recipes() {
         open={!!target}
         title={`Excluir "${target?.name}"?`}
         onConfirm={async () => {
-          if (target) deleteRecipe(target.id);
+          if (target) await deleteRecipe(target.id);
         }}
         onClose={() => setTarget(null)}
       />
