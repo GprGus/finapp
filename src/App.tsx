@@ -5,6 +5,8 @@ import { ModuleSelector } from './pages/ModuleSelector';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { FinApp } from './modules/finapp';
+import { Cook } from './modules/cook';
+import { Notes } from './modules/notes';
 
 function AuthGate() {
   const { user, isLoading } = useAuth();
@@ -30,6 +32,8 @@ function AuthGate() {
     <Routes>
       <Route path="/modulos" element={<ModuleSelector />} />
       <Route path="/finapp/*" element={<FinApp />} />
+      <Route path="/cook/*" element={<Cook />} />
+      <Route path="/notes/*" element={<Notes />} />
       <Route path="*" element={<Navigate to="/modulos" replace />} />
     </Routes>
   );
