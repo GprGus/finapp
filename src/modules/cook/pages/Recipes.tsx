@@ -1,18 +1,18 @@
-import { useState } from 'react';
 import { useCook } from '../state/store';
 import { useTheme } from '@/state/theme';
 import { recipeTileStyle } from '../lib/style';
 import { EmptyState } from '@/components/EmptyState';
-import { ConfirmDeleteSheet } from '@/components/ConfirmDeleteSheet';
-import { AddRecipeSheet } from '../components/AddRecipeSheet';
 import type { Recipe } from '../types';
 
-export function Recipes() {
-  const { recipes, deleteRecipe } = useCook();
+export function Recipes({
+  onSelectRecipe,
+  onAdd,
+}: {
+  onSelectRecipe: (recipe: Recipe) => void;
+  onAdd: () => void;
+}) {
+  const { recipes } = useCook();
   const { theme } = useTheme();
-  const [editing, setEditing] = useState<Recipe | null>(null);
-  const [target, setTarget] = useState<Recipe | null>(null);
-  const [showAdd, setShowAdd] = useState(false);
 
   return (
     <div className="px-5 pt-5 pb-[calc(env(safe-area-inset-bottom,0px)+110px)]">
@@ -29,7 +29,7 @@ export function Recipes() {
         {recipes.map((recipe) => (
           <button
             key={recipe.id}
-            onClick={() => setEditing(recipe)}
+            onClick={() => onSelectRecipe(recipe)}
             className="text-left flex items-center gap-3.5 border border-ink/8 rounded-[18px] px-4 py-3.5 cursor-pointer"
             style={{ background: 'var(--color-card)' }}
           >
@@ -51,32 +51,10 @@ export function Recipes() {
         ))}
       </div>
 
-      <AddRecipeSheet
-        open={showAdd || !!editing}
-        editing={editing}
-        onClose={() => {
-          setShowAdd(false);
-          setEditing(null);
-        }}
-        onRequestDelete={(recipe) => {
-          setEditing(null);
-          setTarget(recipe);
-        }}
-      />
-
-      <ConfirmDeleteSheet
-        open={!!target}
-        title={`Excluir "${target?.name}"?`}
-        onConfirm={async () => {
-          if (target) await deleteRecipe(target.id);
-        }}
-        onClose={() => setTarget(null)}
-      />
-
       <div className="fixed left-0 right-0 bottom-0 flex justify-center pointer-events-none z-70">
         <div className="relative w-full max-w-[560px] pointer-events-none">
           <button
-            onClick={() => setShowAdd(true)}
+            onClick={onAdd}
             aria-label="Nova receita"
             className="absolute right-5 bottom-[calc(env(safe-area-inset-bottom,0px)+24px)] w-14 h-14 rounded-[28px] flex items-center justify-center text-[28px] leading-none pointer-events-auto cursor-pointer"
             style={{
